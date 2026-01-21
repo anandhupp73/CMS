@@ -3,5 +3,5 @@ from django.contrib.auth.decorators import login_required
 
 @login_required
 def home(request):
-    return render(request, 'construction/home.html')
+    return render(request, 'construction/pm_dashboard.html')
 

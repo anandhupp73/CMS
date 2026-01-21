@@ -1,0 +1,83 @@
+{%  extends "dashboard/admin/dashboard.html" %}
+{% load static %}
+{% block content %}
+
+    <main class="max-w-4xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
+        <div class="mb-6">
+            <a href="{% url 'admin_user_list' %}"
+                class="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1 transition-all">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+                Back to User List
+            </a>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="px-8 py-6 border-b border-slate-100 bg-slate-50/50">
+                <h2 class="text-2xl font-bold text-slate-800">{{ title|default:"Create New User" }}</h2>
+                <p class="text-slate-500 text-sm mt-1">Fill in the details below to grant system access.</p>
+            </div>
+
+            <form method="post" class="p-8 space-y-6">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                <div class="p-4 rounded-xl bg-red-50 border border-red-100 text-red-700 text-sm">
+                    {{ form.non_field_errors }}
+                </div>
+                {% endif %}
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-1.5">
+                        <label class="text-sm font-bold text-slate-700 ml-1">Username</label>
+                        {{ form.username }}
+                        <span class="text-xs text-red-500">{{ form.username.errors.0 }}</span>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="text-sm font-bold text-slate-700 ml-1">Email Address</label>
+                        {{ form.email }}
+                        <span class="text-xs text-red-500">{{ form.email.errors.0 }}</span>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="text-sm font-bold text-slate-700 ml-1">Assigned Role</label>
+                        {{ form.role }}
+                        <span class="text-xs text-red-500">{{ form.role.errors.0 }}</span>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="text-sm font-bold text-slate-700 ml-1">Initial Password</label>
+                        {{ form.password1 }}
+                        <span class="text-xs text-red-500">{{ form.password1.errors.0 }}</span>
+                    </div>
+                </div>
+
+                <div class="flex items-center p-4 bg-slate-50 rounded-xl border border-slate-100 w-fit">
+                    <div class="flex items-center gap-3">
+                        {{ form.is_active }}
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700">Account Active</label>
+                            <p class="text-xs text-slate-500">Allow this user to log in immediately.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="border-slate-100">
+
+                <div class="flex items-center justify-end gap-3 pt-2">
+                    <a href="{% url 'admin_user_list' %}"
+                        class="px-6 py-2.5 text-sm font-bold text-slate-600 hover:text-slate-800 transition-colors">
+                        Cancel
+                    </a>
+                    <button type="submit"
+                        class="px-8 py-2.5 bg-slate-900 text-white text-sm font-bold rounded-xl hover:bg-orange-600 shadow-lg shadow-slate-200 transition-all transform active:scale-[0.98]">
+                        Save User
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    {% endblock %}
