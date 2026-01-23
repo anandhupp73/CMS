@@ -8,12 +8,10 @@ class Contractor(models.Model):
     user = models.OneToOneField(
         User,
         on_delete=models.CASCADE,
-        limit_choices_to={'role':'CONT'}
+        limit_choices_to={'role__name': 'Contractor'}
     )
     company_name = models.CharField(max_length=200)
 
-    def __str__(self):
-        return self.company_name
 
 
 class Invoice(models.Model):

@@ -17,6 +17,8 @@ class MaterialUsage(models.Model):
     date = models.DateField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
-        self.material.stock -= self.quantity_used
-        self.material.save()
+        if not self.pk:  # only on first save
+            self.material.stock -= self.quantity_used
+            self.material.save()
         super().save(*args, **kwargs)
+
