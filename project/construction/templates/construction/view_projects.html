@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    Projects
+    <table border="1">
+        <thead>
+            <th>project name</th>
+        <th>start date</th>
+        <th>end date</th>
+        <th>Budget</th>
+        </thead>
+        <tbody>
+            {% for projects in projects %}
+        <td>{{projects.name}}</td>
+        <td>{{projects.start_date}}</td>
+        <td>{{projects.end_date}}</td>
+        <td>{{projects.budget}}</td>
+        {% endfor %}
+        </tbody>
+        
+    </table>
+    <a href="{% url 'admin_dashboard' %}">back to dashboard</a>
+</body>
+</html>

@@ -2,7 +2,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.shortcuts import redirect, render
 from django.contrib.auth import logout
 from django.contrib import messages
-from accounts.models import *
+from accounts.models import User
 from .forms import AdminUserCreateForm
 
 
