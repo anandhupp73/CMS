@@ -57,8 +57,3 @@ def add_project(request):
 @user_passes_test(is_pm)
 def project_manage(request):
     return render(request, 'construction/project_manage.html')
-
-@login_required
-def view_projects(request):
-    projects = Project.objects.all()
-    return render(request, 'construction/view_projects.html',{ 'projects': projects })

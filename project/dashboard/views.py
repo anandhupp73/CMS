@@ -1,10 +1,12 @@
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.shortcuts import redirect, render
-from django.contrib.auth import logout
+from django.contrib.auth import logout, get_user_model
 from django.contrib import messages
-from accounts.models import User
+# from accounts.models import User
 from .forms import AdminUserCreateForm
+from construction.models import *
 
+User = get_user_model()
 
 @login_required
 def dashboard_router(request):
@@ -34,13 +36,15 @@ def dashboard_router(request):
 def is_admin(user):
     return user.role and user.role.name == 'Admin'
 
-
 @login_required
 @user_passes_test(is_admin)
 def admin_dashboard(request):
+    print("User variable:", User)
+    print("Type of User:", type(User))
     total_users = User.objects.count()
     pm_count = User.objects.filter(role__name='Project Manager').count()
     sup_count = User.objects.filter(role__name='Supervisor').count()
+    print(total_users)
 
     context = {
         'total_users': total_users,
@@ -49,6 +53,7 @@ def admin_dashboard(request):
     }
     return render(request, 'dashboard/admin/dashboard.html', context)
 
+    
 @login_required
 @user_passes_test(is_admin)
 def user_list(request):
@@ -73,6 +78,22 @@ def user_create(request):
         'title': 'Add User'
     })
 
+
 @login_required
 def constrction_home(request):
     return render(request, 'dashboard/pm/pm_dashboard.html')
+
+@login_required
+@user_passes_test(is_admin)
+def admin_view_projects(request):
+    projects = Project.objects.all()
+
+    for project in projects:
+        project.progress_percent = project.progress if hasattr(project, 'progress') else 0
+        if hasattr(project, 'spent_budget') and project.budget:
+            project.budget_percent = round((project.spent_budget / project.budget) * 100, 2)
+        else:
+            project.budget_percent = 0
+
+
+    return render(request, 'dashboard/admin/admin_view_projects.html',{ "projects":projects})
