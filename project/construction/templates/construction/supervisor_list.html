@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Supervisors</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-slate-100 min-h-screen">
+
+<div class="max-w-6xl mx-auto px-6 py-8">
+
+    <h1 class="text-3xl font-extrabold text-slate-800 mb-6">
+        Assigned Supervisors
+    </h1>
+
+    <div class="bg-white rounded-xl shadow overflow-hidden">
+        <table class="w-full text-sm">
+            <thead class="bg-slate-50 text-xs uppercase text-slate-500 font-bold">
+                <tr>
+                    <th class="px-6 py-3 text-left">Supervisor</th>
+                    <th class="px-6 py-3">Project</th>
+                    <th class="px-6 py-3">Assigned On</th>
+                </tr>
+            </thead>
+
+            <tbody class="divide-y">
+                {% for item in supervisors %}
+                <tr class="hover:bg-slate-50">
+                    <td class="px-6 py-4 font-semibold">
+                        {{ item.supervisor.username }}
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                        {{ item.project.name }}
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                        {{ item.assigned_at|date:"d M Y" }}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" class="px-6 py-6 text-center text-slate-400">
+                        No supervisors assigned yet.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+</body>
+</html>

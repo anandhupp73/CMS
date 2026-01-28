@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ project.name }} | Project Details</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-slate-100 min-h-screen">
+
+<div class="max-w-7xl mx-auto px-6 py-8">
+
+    <!-- ================= HEADER ================= -->
+    <div class="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-8">
+        <div>
+            <h1 class="text-3xl font-extrabold text-slate-800">
+                {{ project.name }}
+            </h1>
+            <p class="text-sm text-slate-500 mt-1">
+                {{ project.start_date }} → {{ project.end_date }}
+            </p>
+        </div>
+
+        <div class="flex gap-3">
+            <a href="{% url 'construction:add_phase' project.id %}"
+               class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700">
+                + Add Phase
+            </a>
+
+            <a href="{% url 'construction:assign_supervisor' project.id %}"
+               class="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-semibold hover:bg-emerald-700">
+                + Assign Supervisor
+            </a>
+        </div>
+    </div>
+
+    <!-- ================= PROJECT SUMMARY ================= -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+        <div class="bg-white p-6 rounded-xl shadow">
+            <p class="text-xs uppercase text-slate-400 font-bold">Budget</p>
+            <p class="text-2xl font-bold text-emerald-600 mt-1">
+                ₹ {{ project.budget }}
+            </p>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl shadow">
+            <p class="text-xs uppercase text-slate-400 font-bold">Project Manager</p>
+            <p class="text-lg font-semibold mt-1">
+                {{ project.manager.username }}
+            </p>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl shadow">
+            <p class="text-xs uppercase text-slate-400 font-bold">Status</p>
+            <span class="inline-block mt-2 px-3 py-1 rounded-full text-xs font-bold
+                {% if project.is_active %}
+                    bg-green-100 text-green-700
+                {% else %}
+                    bg-red-100 text-red-700
+                {% endif %}
+            ">
+                {% if project.is_active %} Active {% else %} Inactive {% endif %}
+            </span>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl shadow">
+            <p class="text-xs uppercase text-slate-400 font-bold">Total Phases</p>
+            <p class="text-2xl font-bold mt-1">
+                {{ project.phases.count }}
+            </p>
+        </div>
+    </div>
+
+    <!-- ================= PHASE TABLE ================= -->
+    <div class="bg-white rounded-xl shadow mb-10">
+        <div class="px-6 py-4 border-b">
+            <h2 class="text-lg font-bold text-slate-800">
+                Project Phases
+            </h2>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead class="bg-slate-50 text-xs uppercase text-slate-500 font-bold">
+                    <tr>
+                        <th class="px-6 py-3 text-left">Phase</th>
+                        <th class="px-6 py-3 text-center">Expected End</th>
+                        <th class="px-6 py-3 text-center">Actual End</th>
+                        <th class="px-6 py-3 text-center">Progress</th>
+                        <th class="px-6 py-3 text-center">Status</th>
+                        <th class="px-6 py-3 text-center">Action</th>
+                    </tr>
+                </thead>
+
+                <tbody class="divide-y">
+                    {% for phase in phases %}
+                    <tr class="hover:bg-slate-50">
+                        <td class="px-6 py-4 font-semibold">
+                            {{ phase.phase_name }}
+                        </td>
+
+                        <td class="px-6 py-4 text-center">
+                            {{ phase.expected_end }}
+                        </td>
+
+                        <td class="px-6 py-4 text-center">
+                            {{ phase.actual_end|default:"—" }}
+                        </td>
+
+                        <td class="px-6 py-4 text-center font-bold">
+                            {{ phase.progress }}%
+                        </td>
+
+                        <!-- STATUS -->
+                        <td class="px-6 py-4 text-center">
+                            {% if phase.actual_end and phase.actual_end > phase.expected_end %}
+                                <span class="px-3 py-1 rounded-full bg-red-100 text-red-700 text-xs font-bold">
+                                    Delayed
+                                </span>
+                            {% elif phase.progress == 100 %}
+                                <span class="px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-bold">
+                                    Completed
+                                </span>
+                            {% else %}
+                                <span class="px-3 py-1 rounded-full bg-yellow-100 text-yellow-700 text-xs font-bold">
+                                    In Progress
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        <td class="px-6 py-4 text-center">
+                            <a href="{% url 'construction:update_phase' phase.id %}"
+                               class="text-indigo-600 font-bold hover:underline">
+                                Update
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="px-6 py-6 text-center text-slate-400">
+                            No phases added yet.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ================= SUPERVISORS ================= -->
+    <div class="bg-white rounded-xl shadow">
+        <div class="px-6 py-4 border-b">
+            <h2 class="text-lg font-bold text-slate-800">
+                Assigned Supervisors
+            </h2>
+        </div>
+
+        <ul class="divide-y">
+            {% for ps in supervisors %}
+            <li class="px-6 py-4 flex justify-between items-center">
+                <div>
+                    <p class="font-semibold text-slate-800">
+                        {{ ps.supervisor.username }}
+                    </p>
+                    <p class="text-xs text-slate-400">
+                        Assigned on {{ ps.assigned_at|date:"d M Y" }}
+                    </p>
+                </div>
+            </li>
+            {% empty %}
+            <li class="px-6 py-6 text-center text-slate-400">
+                No supervisors assigned yet.
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+</div>
+
+</body>
+</html>

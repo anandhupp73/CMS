@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Phase</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-slate-100 min-h-screen flex items-center justify-center">
+
+<div class="bg-white p-6 rounded-xl shadow-lg w-full max-w-md">
+    <h2 class="text-xl font-bold mb-4">Add Phase – {{ project.name }}</h2>
+
+    <form method="post" class="space-y-4">
+        {% csrf_token %}
+
+        <div>
+            <label class="text-sm font-semibold">Phase Name</label>
+            <input type="text" name="phase_name" required
+                class="w-full px-3 py-2 border rounded-lg">
+        </div>
+
+        <div>
+            <label class="text-sm font-semibold">Expected End Date</label>
+            <input type="date" name="expected_end" required
+                class="w-full px-3 py-2 border rounded-lg">
+        </div>
+
+        <div class="flex justify-end gap-3">
+            <a href="{% url 'construction:construction_home' %}"
+               class="px-4 py-2 bg-slate-200 rounded-lg">Cancel</a>
+            <button class="px-4 py-2 bg-indigo-600 text-white rounded-lg">
+                Add Phase
+            </button>
+             <a href="{% url 'construction:construction_home' %}" class="block text-center mt-4 text-sm font-medium text-slate-500 hover:text-slate-800 transition-colors">
+                        Cancel and go back
+                    </a> 
+        </div>
+    </form>
+</div>
+
+</body>
+</html>
+
+                    
+                   
+      
