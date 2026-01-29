@@ -1,8 +1,9 @@
-Construction Management System
+🏗️ Construction Management System
 
-A simple Construction Management System built with Django, HTML, Tailwind CSS, and SQLite3. Designed to manage construction projects with role-based access for Admins, Project Managers, Supervisors, Contractors, and Accountants.
+A simple Construction Management System built with Django, HTML, Tailwind CSS, and SQLite3.
+Designed to manage construction projects with role-based access for Admins, Project Managers, Supervisors, Contractors, and Accountants.
 
-Features
+🚀 Features
 
 Role-Based Access: Admin, Project Manager, Supervisor, Contractor, Accountant
 
@@ -14,7 +15,7 @@ Basic Reporting: Track project status and finances
 
 Responsive UI: Built with Tailwind CSS
 
-Tech Stack
+🛠️ Tech Stack
 
 Backend: Django
 
