@@ -1,25 +1,59 @@
-<table class="w-full">
-  <tr class="bg-gray-100">
-    <th>Project</th>
-    <th>Phase</th>
-    <th>Issue</th>
-    <th>Supervisor</th>
-    <th>Status</th>
-  </tr>
+{% extends "construction/pm_dashboard.html" %}
+{% block title %}Project Issues{% endblock %}
 
-  {% for issue in issues %}
-  <tr>
-    <td>{{ issue.project.name }}</td>
-    <td>{{ issue.phase.phase_name }}</td>
-    <td>{{ issue.get_issue_type_display }}</td>
-    <td>{{ issue.reported_by.username }}</td>
-    <td>
-      {% if issue.is_resolved %}
-        <span class="text-green-600">Resolved</span>
-      {% else %}
-        <span class="text-red-600">Open</span>
-      {% endif %}
-    </td>
-  </tr>
-  {% endfor %}
+{% block content %}
+<div class="mt-8">
+    <h2 class="text-2xl font-bold text-slate-800 mb-4">Project Issues & Delays</h2>
+    <p class="text-sm text-slate-500 mb-6">
+        List of issues reported by supervisors for your projects. Monitor progress and take action.
+    </p>
+
+    <div class="overflow-x-auto bg-white shadow-md rounded-xl border border-gray-200">
+        <table class="min-w-full divide-y divide-gray-200 bg-white shadow-md rounded-xl overflow-hidden">
+    <thead class="bg-gray-100">
+        <tr>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Project</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Phase</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Issue</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Supervisor</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Status</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Reported On</th>
+        </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-200">
+        {% for issue in issues %}
+        <tr class="hover:bg-gray-50">
+            <!-- Project -->
+            <td class="px-4 py-3 text-sm font-medium text-gray-700">{{ issue.project.name }}</td>
+            <!-- Phase -->
+            <td class="px-4 py-3 text-sm text-gray-600">{{ issue.phase.phase_name }}</td>
+            <!-- Issue Type + Description -->
+            <td class="px-4 py-3 text-sm text-gray-700">
+                <div class="font-semibold">{{ issue.get_issue_type_display }}</div>
+                <div class="text-gray-500 mt-1">{{ issue.description }}</div>
+            </td>
+            <!-- Supervisor -->
+            <td class="px-4 py-3 text-sm text-gray-700">{{ issue.reported_by.username }}</td>
+            <!-- Status -->
+            <td class="px-4 py-3 text-sm font-semibold">
+                {% if issue.is_resolved %}
+                    <span class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs">Resolved</span>
+                {% else %}
+                    <span class="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs">Open</span>
+                {% endif %}
+            </td>
+            <!-- Reported On -->
+            <td class="px-4 py-3 text-sm text-gray-500">{{ issue.created_at|date:"d M Y H:i" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="6" class="px-4 py-4 text-center text-gray-400">No issues reported yet.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
 </table>
+
+    </div>
+
+</div>
+{% endblock %}

@@ -153,11 +153,28 @@ def project_detail(request, project_id):
         'supervisors': supervisors,
     })
 
+from django.utils import timezone  # <-- use this, not datetime.timezone
+from django.contrib.auth.decorators import login_required, user_passes_test
+from .models import Issue, ProjectPhase
+
 @login_required
 @user_passes_test(is_pm)
 def pm_issues(request):
-    issues = Issue.objects.filter(project__manager=request.user)
-    return render(request, 'construction/pm_issues.html', {'issues': issues})
+    # All reported issues for projects managed by this PM
+    issues = Issue.objects.filter(
+        project__manager=request.user
+    ).select_related('phase', 'project', 'reported_by')
+    
+    delayed_phases = ProjectPhase.objects.filter(
+        project__manager=request.user,
+        expected_end__lt=timezone.now(),
+        actual_end__isnull=True
+    ).select_related('project')
+
+    return render(request, 'construction/pm_issues.html', {
+        'issues': issues,
+        'delayed_phases': delayed_phases
+    })
 
 
 @login_required
