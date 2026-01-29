@@ -3,6 +3,8 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth import get_user_model
 from django.contrib import messages
 from .models import *
+from django.shortcuts import get_object_or_404
+
 from datetime import timezone
 
 User = get_user_model()
@@ -12,6 +14,14 @@ def is_admin(user):
 
 def is_pm(user):
     return user.role and user.role.name == 'Project Manager'
+
+def is_sup(user):
+    return user.role and user.role.name == 'Supervisor'
+
+def is_pm_or_sup(user):
+    return user.role and user.role.name in ['Project Manager', 'Supervisor']
+
+
 
 @login_required
 def home(request):
@@ -145,8 +155,31 @@ def project_detail(request, project_id):
 
 @login_required
 @user_passes_test(is_pm)
+def pm_issues(request):
+    issues = Issue.objects.filter(project__manager=request.user)
+    return render(request, 'construction/pm_issues.html', {'issues': issues})
+
+
+@login_required
+@user_passes_test(is_pm_or_sup)
 def update_phase(request, phase_id):
-    phase = ProjectPhase.objects.get(id=phase_id)
+    user = request.user
+
+    # PM: can update phases of projects they manage
+    if user.role.name == 'Project Manager':
+        phase = get_object_or_404(
+            ProjectPhase,
+            id=phase_id,
+            project__manager=user
+        )
+
+    # Supervisor: can update phases of projects they are assigned to
+    else:
+        phase = get_object_or_404(
+            ProjectPhase,
+            id=phase_id,
+            project__projectsupervisor__supervisor=user
+        )
 
     if request.method == 'POST':
         phase.progress = request.POST.get('progress')
@@ -155,6 +188,11 @@ def update_phase(request, phase_id):
         phase.actual_end = actual_end if actual_end else None
 
         phase.save()
+
+        # Redirect based on role
+        if user.role.name == 'Supervisor':
+            return redirect('construction:supervisor_dashboard')
+
         return redirect('construction:project_detail', phase.project.id)
 
     return render(request, 'construction/update_phase.html', {
@@ -170,4 +208,39 @@ def supervisors_list(request):
 
     return render(request, 'construction/supervisor_list.html', {
         'supervisors': supervisors
+    })
+
+@login_required
+def supervisor_dashboard(request):
+    user = request.user
+
+    assigned_phases = ProjectPhase.objects.filter(
+        project__projectsupervisor__supervisor=user
+    ).select_related('project')
+
+    return render(request, 'construction/supervisor_dashboard.html', {
+        'assigned_phases': assigned_phases
+    })
+
+@login_required
+@user_passes_test(is_sup)
+def report_issue(request, phase_id):
+    phase = ProjectPhase.objects.get(
+        id=phase_id,
+        project__projectsupervisor__supervisor=request.user
+    )
+
+    if request.method == 'POST':
+        Issue.objects.create(
+            project=phase.project,
+            phase=phase,
+            reported_by=request.user,
+            issue_type=request.POST['issue_type'],
+            description=request.POST['description']
+        )
+        messages.success(request, "Issue reported successfully")
+        return redirect('construction:supervisor_dashboard')
+
+    return render(request, 'construction/report_issue.html', {
+        'phase': phase
     })

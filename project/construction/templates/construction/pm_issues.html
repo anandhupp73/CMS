@@ -1,0 +1,25 @@
+<table class="w-full">
+  <tr class="bg-gray-100">
+    <th>Project</th>
+    <th>Phase</th>
+    <th>Issue</th>
+    <th>Supervisor</th>
+    <th>Status</th>
+  </tr>
+
+  {% for issue in issues %}
+  <tr>
+    <td>{{ issue.project.name }}</td>
+    <td>{{ issue.phase.phase_name }}</td>
+    <td>{{ issue.get_issue_type_display }}</td>
+    <td>{{ issue.reported_by.username }}</td>
+    <td>
+      {% if issue.is_resolved %}
+        <span class="text-green-600">Resolved</span>
+      {% else %}
+        <span class="text-red-600">Open</span>
+      {% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+</table>

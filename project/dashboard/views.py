@@ -20,7 +20,7 @@ def dashboard_router(request):
         return redirect('construction:construction_home')
 
     elif role == 'Supervisor':
-        return redirect('labour_home')
+        return redirect('construction:supervisor_dashboard')
 
     elif role == 'Contractor':
         return redirect('contractors_home')
@@ -78,10 +78,6 @@ def user_create(request):
         'title': 'Add User'
     })
 
-
-@login_required
-def constrction_home(request):
-    return render(request, 'dashboard/pm/pm_dashboard.html')
 
 @login_required
 @user_passes_test(is_admin)

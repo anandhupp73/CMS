@@ -65,3 +65,23 @@ class ProjectSupervisor(models.Model):
 
     class Meta:
         unique_together = ('project', 'supervisor')
+
+class Issue(models.Model):
+    ISSUE_TYPES = [
+        ('material', 'Material Delay'),
+        ('labor', 'Labor Shortage'),
+        ('safety', 'Safety Issue'),
+        ('weather', 'Weather Issue'),
+        ('other', 'Other'),
+    ]
+
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    phase = models.ForeignKey(ProjectPhase, on_delete=models.CASCADE)
+    reported_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    issue_type = models.CharField(max_length=20, choices=ISSUE_TYPES)
+    description = models.TextField()
+    is_resolved = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.project.name} - {self.issue_type}"
