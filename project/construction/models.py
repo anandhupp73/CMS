@@ -30,6 +30,16 @@ class Project(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
 
+    @property
+    def total_progress(self):
+        phases = self.phases.all()
+        if not phases.exists():
+            return 0
+        
+        # Calculate average: (Sum of phase progress) / (Number of phases)
+        total = sum(phase.progress for phase in phases)
+        return round(total / phases.count())
+
     def __str__(self):
         return self.name
 

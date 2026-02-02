@@ -1,9 +1,13 @@
 from django.contrib import admin
-from .models import Contractor, Invoice
+from .models import ProjectContractor, Invoice
 
-@admin.register(Contractor)
+@admin.register(ProjectContractor)
 class ContractorAdmin(admin.ModelAdmin):
-    list_display = ('company_name', 'user')
+    list_display = ('contractor', 'project', 'get_email', 'assigned_at') 
+
+    def get_email(self, obj):
+        return obj.contractor.email
+    get_email.short_description = 'Contractor Email'
 
 @admin.register(Invoice)
 class InvoiceAdmin(admin.ModelAdmin):

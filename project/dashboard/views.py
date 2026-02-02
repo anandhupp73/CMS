@@ -2,7 +2,6 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.shortcuts import redirect, render
 from django.contrib.auth import logout, get_user_model
 from django.contrib import messages
-# from accounts.models import User
 from .forms import AdminUserCreateForm
 from construction.models import *
 
@@ -23,10 +22,10 @@ def dashboard_router(request):
         return redirect('construction:supervisor_dashboard')
 
     elif role == 'Contractor':
-        return redirect('contractors_home')
+        return redirect('contractors:contractors_home')
 
     elif role == 'Accountant':
-        return redirect('finance_home')
+        return redirect('finance:finance_home')
 
     messages.error(request, "No role assigned. Contact admin.")
     logout(request)

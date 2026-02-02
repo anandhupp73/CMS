@@ -4,8 +4,8 @@ from django.contrib.auth import get_user_model
 from django.contrib import messages
 from .models import *
 from django.shortcuts import get_object_or_404
-
-from datetime import timezone
+from django.utils import timezone
+from contractors.models import *
 
 User = get_user_model()
 
@@ -25,9 +25,8 @@ def is_pm_or_sup(user):
 
 @login_required
 def home(request):
-
-    projets = Project.objects.filter(manager=request.user)
-    return render(request, 'construction/pm_dashboard.html',{ 'projects': projets})
+    projets = Project.objects.filter(manager=request.user).prefetch_related('phases')
+    return render(request, 'construction/pm_dashboard.html', {'projects': projets})
 
 @login_required
 @user_passes_test(is_admin)
@@ -153,10 +152,6 @@ def project_detail(request, project_id):
         'supervisors': supervisors,
     })
 
-from django.utils import timezone  # <-- use this, not datetime.timezone
-from django.contrib.auth.decorators import login_required, user_passes_test
-from .models import Issue, ProjectPhase
-
 @login_required
 @user_passes_test(is_pm)
 def pm_issues(request):
@@ -260,4 +255,29 @@ def report_issue(request, phase_id):
 
     return render(request, 'construction/report_issue.html', {
         'phase': phase
+    })
+
+@login_required
+@user_passes_test(is_pm)
+def assign_contractor(request, project_id):
+    project = Project.objects.get(id=project_id)
+
+    contractors = User.objects.filter(role__name='Contractor', is_active=True)
+
+    if request.method == 'POST':
+        contractor_id = request.POST.get('contractor')
+        contractor = User.objects.get(id=contractor_id)
+
+        ProjectContractor.objects.create(
+            project=project,
+            contractor=contractor
+        )
+
+        messages.success(request, "contractor assigned")
+        return redirect('construction:construction_home')
+
+
+    return render(request, 'construction/assign_contractor.html',{
+        'project':project,
+        'contractors':contractors
     })
