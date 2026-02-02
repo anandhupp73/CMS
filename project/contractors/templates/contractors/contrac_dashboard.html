@@ -46,126 +46,98 @@
     </nav>
 
     <main class="flex-1 pt-24 pb-12 px-6 max-w-7xl mx-auto w-full">
-        
-        <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-            <div>
-                <h1 class="text-4xl font-black text-slate-800 tracking-tighter">Contractor Dashboard</h1>
-                <p class="text-slate-400 font-medium text-sm mt-1">Viewing your active site assignments and billing.</p>
-            </div>
-            <div class="flex gap-3">
-                <a href="{% url 'contractors:work_logs' %}" class="bg-white border border-slate-200 text-slate-700 px-6 py-3 rounded-2xl text-xs font-bold hover:bg-slate-50 transition shadow-sm flex items-center gap-2">
-                    <i class="fas fa-calendar-check text-slate-400"></i> Daily Log
-                </a>
-                <a href="{% url 'contractors:submit_invoice' %}" class="bg-emerald-600 text-white px-6 py-3 rounded-2xl text-xs font-bold hover:bg-emerald-700 transition shadow-lg shadow-emerald-200 flex items-center gap-2">
-                    <i class="fas fa-file-invoice-dollar"></i> Submit Invoice
-                </a>
-            </div>
+    
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+        <div>
+            <h1 class="text-4xl font-black text-slate-800 tracking-tighter">Contractor Dashboard</h1>
+            <p class="text-slate-400 font-medium text-sm mt-1">Manage project resources, labor attendance, and billing.</p>
         </div>
+        <div class="flex gap-3">
+            <a href="{% url 'labour:add_worker' %}" class="bg-white border border-slate-200 text-slate-700 px-6 py-3 rounded-2xl text-xs font-bold hover:bg-slate-50 transition shadow-sm flex items-center gap-2">
+                <i class="fas fa-user-plus text-slate-400"></i> Register Worker
+            </a>
+            <a href="{% url 'materials:material_home' %}" class="bg-white border border-slate-200 text-slate-700 px-6 py-3 rounded-2xl text-xs font-bold hover:bg-slate-50 transition shadow-sm flex items-center gap-2">
+                <i class="fas fa-warehouse text-slate-400"></i> Material Bank
+            </a>
+            <a href="{% url 'contractors:submit_invoice' %}" class="bg-emerald-600 text-white px-6 py-3 rounded-2xl text-xs font-bold hover:bg-emerald-700 transition shadow-lg shadow-emerald-200 flex items-center gap-2">
+                <i class="fas fa-file-invoice-dollar"></i> Submit Invoice
+            </a>
+        </div>
+    </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            
-            <div class="lg:col-span-8 space-y-8">
-                <h2 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-3">
-                    <span class="w-8 h-[1px] bg-slate-200"></span>
-                    Assigned Projects
-                </h2>
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div class="lg:col-span-8 space-y-8">
+            <h2 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-3">
+                <span class="w-8 h-[1px] bg-slate-200"></span>
+                Assigned Projects
+            </h2>
 
-                {% for assignment in assignments %}
-                <div class="bg-white rounded-[2.5rem] border border-slate-200 p-8 shadow-sm hover:shadow-md transition-all group">
-                    <div class="flex justify-between items-start mb-8">
-                        <div class="space-y-1">
-                            <div class="flex items-center gap-2">
-                                <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
-                                <span class="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Active Site</span>
-                            </div>
-                            <h3 class="text-2xl font-black text-slate-800 uppercase tracking-tight group-hover:text-emerald-600 transition-colors">
-                                {{ assignment.project.name }}
-                            </h3>
-                            <p class="text-[10px] text-slate-400 font-bold uppercase">Assigned: {{ assignment.assigned_at|date:"F d, Y" }}</p>
+            {% for assignment in assignments %}
+            <div class="bg-white rounded-[2.5rem] border border-slate-200 p-8 shadow-sm hover:shadow-md transition-all group">
+                <div class="flex justify-between items-start mb-8">
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                            <span class="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Active Site</span>
                         </div>
-                        <div class="bg-slate-50 p-4 rounded-2xl text-center min-w-[100px] border border-slate-100">
-                            <p class="text-[9px] font-black text-slate-400 uppercase leading-none mb-1">Project Progress</p>
-                            <p class="text-2xl font-black text-slate-800 leading-none">{{ assignment.project.total_progress }}%</p>
-                        </div>
+                        <h3 class="text-2xl font-black text-slate-800 uppercase tracking-tight group-hover:text-emerald-600 transition-colors">
+                            {{ assignment.project.name }}
+                        </h3>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase">Assigned: {{ assignment.assigned_at|date:"M d, Y" }}</p>
                     </div>
-
-                    <div class="w-full bg-slate-100 h-2 rounded-full mb-8 overflow-hidden">
-                        <div class="bg-emerald-500 h-full rounded-full transition-all duration-1000" style="width: {{ assignment.project.total_progress }}%"></div>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {% for phase in assignment.project.phases.all %}
-                        <div class="flex items-center justify-between p-4 bg-slate-50/50 rounded-2xl border border-slate-100">
-                            <div>
-                                <p class="text-xs font-bold text-slate-700">{{ phase.phase_name }}</p>
-                                <p class="text-[9px] text-slate-400 uppercase font-medium">Est. Completion: {{ phase.expected_end }}</p>
-                            </div>
-                            <span class="text-xs font-black {% if phase.progress == 100 %}text-emerald-500{% else %}text-amber-500{% endif %}">
-                                {{ phase.progress }}%
-                            </span>
-                        </div>
-                        {% empty %}
-                        <p class="text-[10px] text-slate-400 italic">No phases established yet.</p>
-                        {% endfor %}
+                    <div class="bg-slate-50 p-4 rounded-2xl text-center min-w-[100px] border border-slate-100">
+                        <p class="text-[9px] font-black text-slate-400 uppercase leading-none mb-1">Project Progress</p>
+                        <p class="text-2xl font-black text-slate-800 leading-none">{{ assignment.project.total_progress }}%</p>
                     </div>
                 </div>
-                {% empty %}
-                <div class="bg-white border-2 border-dashed border-slate-200 rounded-[3rem] p-20 text-center">
-                    <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <i class="fas fa-folder-open text-slate-300 text-3xl"></i>
-                    </div>
-                    <h3 class="text-lg font-bold text-slate-800 uppercase tracking-tight">No Assignments Found</h3>
-                    <p class="text-slate-400 text-sm mt-2 max-w-xs mx-auto">Assignments will appear here once the Project Manager links you to a project.</p>
-                </div>
-                {% endfor %}
-            </div>
 
-            <div class="lg:col-span-4 space-y-8">
-                
-                <div class="bg-[#1e293b] rounded-[2.5rem] p-8 text-white shadow-2xl relative overflow-hidden group">
-                    <div class="relative z-10">
-                        <p class="text-[10px] font-black text-emerald-400 uppercase tracking-[0.2em] mb-4">Financial Overview</p>
-                        <p class="text-sm text-slate-400 font-medium">Pending Approvals</p>
-                        <h2 class="text-5xl font-black my-2">{{ pending_invoices }}</h2>
-                        
-                        <div class="mt-8 pt-6 border-t border-slate-800 flex justify-between items-center">
-                            <span class="text-[10px] font-bold text-slate-500 uppercase">Paid this month</span>
-                            <span class="text-sm font-black text-emerald-400">$0.00</span>
-                        </div>
-                    </div>
-                    <i class="fas fa-file-invoice-dollar absolute -bottom-6 -right-6 text-8xl text-slate-800 opacity-30 group-hover:rotate-12 transition-transform duration-500"></i>
+                <div class="w-full bg-slate-100 h-2 rounded-full mb-8 overflow-hidden">
+                    <div class="bg-emerald-500 h-full rounded-full transition-all duration-1000" style="width: {{ assignment.project.total_progress }}%"></div>
                 </div>
 
-                <div class="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden">
-                    <div class="p-6 border-b border-slate-100 flex justify-between items-center">
-                        <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Billing History</h3>
-                        <i class="fas fa-history text-slate-300 text-xs"></i>
-                    </div>
-                    <div class="max-h-[450px] overflow-y-auto custom-scrollbar">
-                        {% for inv in invoices %}
-                        <div class="p-6 border-b border-slate-50 last:border-0 hover:bg-slate-50 transition-colors">
-                            <div class="flex justify-between items-start mb-2">
-                                <p class="text-base font-black text-slate-800">${{ inv.amount }}</p>
-                                <span class="text-[8px] font-black uppercase px-2 py-1 rounded-lg tracking-tighter
-                                    {% if inv.status == 'PAID' %}bg-emerald-100 text-emerald-600{% elif inv.status == 'APPROVED' %}bg-blue-100 text-blue-600{% else %}bg-amber-100 text-amber-600{% endif %}">
-                                    {{ inv.status }}
-                                </span>
-                            </div>
-                            <p class="text-[10px] text-slate-400 font-bold uppercase">{{ inv.created_at|date:"M d, Y" }} • {{ inv.project.name }}</p>
+                <div class="grid grid-cols-2 gap-4 mb-8">
+                    <a href="{% url 'materials:project_usage' assignment.project.id %}" class="flex items-center justify-center gap-3 p-4 bg-emerald-50 border border-emerald-100 rounded-2xl text-emerald-700 hover:bg-emerald-100 transition group/btn">
+                        <i class="fas fa-boxes text-lg group-hover/btn:scale-110 transition-transform"></i>
+                        <div class="text-left">
+                            <p class="text-[10px] font-black uppercase leading-none mb-1">Materials</p>
+                            <p class="text-[9px] font-medium opacity-70">Log Usage</p>
                         </div>
-                        {% empty %}
-                        <div class="py-16 text-center">
-                            <p class="text-[10px] text-slate-300 font-black uppercase tracking-widest leading-loose">No billing history<br>recorded</p>
+                    </a>
+                    <a href="{% url 'labour:project_attendance' assignment.project.id %}" class="flex items-center justify-center gap-3 p-4 bg-blue-50 border border-blue-100 rounded-2xl text-blue-700 hover:bg-blue-100 transition group/btn">
+                        <i class="fas fa-users-cog text-lg group-hover/btn:scale-110 transition-transform"></i>
+                        <div class="text-left">
+                            <p class="text-[10px] font-black uppercase leading-none mb-1">Labour</p>
+                            <p class="text-[9px] font-medium opacity-70">Attendance</p>
                         </div>
-                        {% endfor %}
-                    </div>
-                    <a href="#" class="block text-center py-4 bg-slate-50 text-[10px] font-black text-emerald-600 uppercase tracking-[0.2em] hover:bg-emerald-50 transition-colors">
-                        View All Records
                     </a>
                 </div>
+
+                <div class="mb-8">
+                     <a href="{% url 'labour:view_project_workers' assignment.project.id %}" class="text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-blue-500 flex items-center gap-2">
+                        <i class="fas fa-address-book"></i> View Site Personnel
+                     </a>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {% for phase in assignment.project.phases.all %}
+                    <div class="flex items-center justify-between p-4 bg-slate-50/50 rounded-2xl border border-slate-100">
+                        <div>
+                            <p class="text-xs font-bold text-slate-700">{{ phase.phase_name }}</p>
+                            <p class="text-[9px] text-slate-400 uppercase font-medium">Est. End: {{ phase.expected_end }}</p>
+                        </div>
+                        <span class="text-xs font-black {% if phase.progress == 100 %}text-emerald-500{% else %}text-amber-500{% endif %}">
+                            {{ phase.progress }}%
+                        </span>
+                    </div>
+                    {% empty %}
+                    <p class="text-[10px] text-slate-400 italic">No phases established yet.</p>
+                    {% endfor %}
+                </div>
             </div>
+            {% endfor %}
         </div>
-    </main>
+        </div>
+</main>
 
 </body>
 </html>

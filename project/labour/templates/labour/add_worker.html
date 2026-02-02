@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Register Worker - CMS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-slate-50 min-h-screen flex items-center justify-center p-6">
+
+    <div class="max-w-md w-full bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-200">
+        <div class="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center mb-6">
+            <i class="fas fa-user-plus text-blue-600"></i>
+        </div>
+
+        <h2 class="text-3xl font-black text-slate-800 tracking-tight mb-2">Register Worker</h2>
+        <p class="text-slate-400 text-[10px] mb-8 uppercase tracking-widest font-black">Add new personnel to the labor pool</p>
+
+        <form method="POST" class="space-y-6">
+            {% csrf_token %}
+            <div>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Worker Full Name</label>
+                <input type="text" name="name" required class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Daily Wage ($)</label>
+                <input type="number" step="0.01" name="wage_per_day" required class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+            
+            <div class="pt-4">
+                <button type="submit" class="w-full bg-slate-900 text-white font-bold py-4 rounded-2xl hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 uppercase tracking-widest text-[10px]">
+                    Add to Labour Pool
+                </button>
+                <a href="{% url 'contractors:contractors_home' %}" class="block text-center py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest hover:text-slate-600 transition-colors">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+
+</body>
+</html>
