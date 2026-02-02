@@ -1,6 +1,6 @@
 from django.db import models
 from django.conf import settings
-
+from django.core.validators import MinValueValidator,MaxValueValidator
 User = settings.AUTH_USER_MODEL
 
 
@@ -52,7 +52,13 @@ class ProjectPhase(models.Model):
 
     phase_name = models.CharField(max_length=100)
 
-    progress = models.PositiveIntegerField(default=0)
+    progress = models.PositiveIntegerField(
+        default=0,
+        validators=[
+            MinValueValidator(0),
+            MaxValueValidator(100)
+        ]
+    )
 
     expected_end = models.DateField()
     actual_end = models.DateField(null=True, blank=True)
