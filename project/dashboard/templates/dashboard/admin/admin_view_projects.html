@@ -4,7 +4,6 @@
 
 {% block content %}
 
-
 <div class="flex justify-between items-center mb-6">
     <h2 class="text-2xl font-bold text-slate-800 tracking-tight">Projects</h2>
     <a href="{% url 'construction:add_project' %}"
@@ -15,77 +14,95 @@
 
 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
 
-    {% for project in projects %}
-    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 hover:shadow-md transition-all">
+{% for project in projects %}
+<a href="{% url 'admin_project_detail' project.id %}"
+   class="block focus:outline-none">
+<div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 hover:shadow-md transition-all">
 
-        <!-- Header -->
-        <div class="flex justify-between items-start mb-4">
-            <div class="space-y-1">
-                <h3 class="text-lg font-bold text-slate-800 tracking-tight">
-                    {{ project.name }}
-                </h3>
-                <p class="text-xs text-slate-400">
-                    {{ project.start_date }} - {{ project.end_date }}
-                </p>
-            </div>
-            <span class="bg-slate-100 text-slate-600 text-[9px] font-black px-2 py-0.5 rounded uppercase">
-                {% if project.is_active %}Active{% else %}Pending{% endif %}
-            </span>
+    <!-- Header -->
+    <div class="flex justify-between items-start mb-4">
+        <div class="space-y-1">
+            <h3 class="text-lg font-bold text-slate-800 tracking-tight">
+                {{ project.name }}
+            </h3>
+
+            <!-- Formatter-safe dates -->
+            <p class="text-xs text-slate-400">
+                {{ project.start_date|date:"M Y" }}
+                –
+                {{ project.end_date|date:"M Y" }}
+            </p>
         </div>
 
-        <!-- Body -->
-        <div class="space-y-4">
+        <span class="bg-slate-100 text-slate-600 text-[9px] font-black px-2 py-0.5 rounded uppercase">
+            {% if project.is_active %}Active{% else %}Inactive{% endif %}
+        </span>
+    </div>
 
-            <!-- Project Progress -->
-            <div>
-                <div class="flex justify-between text-xs font-bold mb-1 uppercase tracking-tighter text-slate-500">
-                    <span>Project Progress</span>
-                    <span class="text-slate-900">{{ project.progress_percent }}%</span>
-                </div>
-                <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                    <div class="h-full bg-indigo-600" style="width: {{ project.progress_percent }}%;"></div>
+    <!-- Body -->
+    <div class="space-y-4">
+
+        <!-- Project Progress -->
+        <div>
+            <div class="flex justify-between text-xs font-bold mb-1 uppercase tracking-tighter text-slate-500">
+                <span>Project Progress</span>
+                <span class="text-slate-900">{{ project.progress_percent }}%</span>
+            </div>
+            <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                <div class="h-full bg-indigo-600"
+                     style="width: {{ project.progress_percent }}%;">
                 </div>
             </div>
+        </div>
 
-            <!-- Budget Usage -->
-            <div>
-                <div class="flex justify-between text-xs font-bold mb-1 uppercase tracking-tighter text-slate-500">
-                    <span>Budget Usage</span>
-                    <span class="text-slate-900">
-                        ${{ project.spent_budget|default:"0" }} / {{ project.budget }}
-                    </span>
-                </div>
-                <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                    <div class="h-full bg-emerald-500" style="width: {{ project.budget_percent }}%;"></div>
+        <!-- Budget Usage -->
+        <div>
+            <div class="flex justify-between text-xs font-bold mb-1 uppercase tracking-tighter text-slate-500">
+                <span>Budget Usage</span>
+                <span class="text-slate-900">
+                    ${{ project.spent_budget|floatformat:0 }} / {{ project.budget }}
+                </span>
+            </div>
+            <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                <div class="h-full bg-emerald-500"
+                     style="width: {{ project.budget_percent }}%;">
                 </div>
             </div>
+        </div>
 
+        <!-- Project Phases -->
+        <div>
+            <p class="text-[10px] font-bold text-slate-400 uppercase mb-2">
+                Project Phases
+            </p>
+            <div class="flex flex-wrap gap-2">
 
-            <!-- Project Phases -->
-            <div>
-                <p class="text-[10px] font-bold text-slate-400 uppercase mb-2">Project Phases</p>
-                <div class="flex flex-wrap gap-2">
-                    {% for phase in project.phases.all %}
-                    <span class="px-3 py-1 
-                                 {% if phase.status == 'Completed' %}bg-emerald-200 text-emerald-800
-                                 {% elif phase.status == 'In Progress' %}bg-yellow-200 text-yellow-800
-                                 {% else %}bg-slate-200 text-slate-600{% endif %} 
-                                 rounded-full text-[9px] font-bold uppercase">
-                        {{ phase.name }}
-                    </span>
-                    {% empty %}
-                    <span class="px-3 py-1 bg-slate-200 text-slate-600 rounded-full text-[9px] font-bold uppercase">
-                        Not Started
-                    </span>
-                    {% endfor %}
-                </div>
+                {% for phase in project.phases.all %}
+                <span class="
+                    px-3 py-1 rounded-full text-[9px] font-bold uppercase
+                    {% if phase.progress == 100 %}
+                        bg-emerald-200 text-emerald-800
+                    {% elif phase.progress > 0 %}
+                        bg-amber-200 text-amber-800
+                    {% else %}
+                        bg-slate-200 text-slate-600
+                    {% endif %}
+                ">
+                    {{ phase.phase_name }}
+                </span>
+                {% empty %}
+                <span class="px-3 py-1 bg-slate-200 text-slate-600 rounded-full text-[9px] font-bold uppercase">
+                    No phases
+                </span>
+                {% endfor %}
+
             </div>
-
-
         </div>
 
     </div>
-    {% endfor %}
+</div>
+</a>
+{% endfor %}
 
 </div>
 
