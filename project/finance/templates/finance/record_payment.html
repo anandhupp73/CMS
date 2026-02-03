@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Record Payment - CMS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 min-h-screen flex items-center justify-center p-6">
+    <div class="max-w-md w-full bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-200">
+        <h2 class="text-3xl font-black text-slate-800 tracking-tight mb-2">Process Payment</h2>
+        <p class="text-slate-400 text-[10px] mb-8 uppercase tracking-widest font-black">Settling Invoice #{{ invoice.id }} for {{ invoice.project.name }}</p>
+
+        <form method="POST" class="space-y-6">
+            {% csrf_token %}
+            <div>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-2">Total Amount to Pay</label>
+                <input type="number" step="0.01" name="amount" value="{{ invoice.amount }}" required class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-lg">
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-2">Payment Mode</label>
+                <select name="mode" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-sm">
+                    <option value="Bank Transfer">Bank Transfer (NEFT/RTGS)</option>
+                    <option value="UPI">UPI</option>
+                    <option value="Check">Check</option>
+                    <option value="Cash">Cash</option>
+                </select>
+            </div>
+            <button type="submit" class="w-full bg-emerald-600 text-white font-black py-5 rounded-2xl uppercase tracking-widest text-[10px] shadow-xl shadow-emerald-100">
+                Confirm Transaction
+            </button>
+        </form>
+    </div>
+</body>
+</html>
