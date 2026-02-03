@@ -8,6 +8,10 @@ from construction.models import Project
 def can_manage_materials(user):
     return user.role and user.role.name in ['Admin', 'Project Manager', 'Contractor']
 
+def can_add_materials(user):
+    return user.role and user.role.name in ['Admin', 'Project Manager']
+    
+
 @login_required
 @user_passes_test(can_manage_materials)
 def material_bank(request):
@@ -18,15 +22,18 @@ def material_bank(request):
         if request.user.role.name not in ['Admin', 'Project Manager']:
             messages.error(request, "Only Managers can add new material types.")
             return redirect('materials:material_bank')
+        
+        initial_stock = float(request.POST.get('initial_stock'))
             
         Material.objects.create(
             name=request.POST.get('name'),
             unit=request.POST.get('unit'),
-            stock=request.POST.get('stock'),
+            initial_stock=initial_stock,
+            stock=initial_stock,
             cost_per_unit=request.POST.get('cost_per_unit')
         )
         messages.success(request, "Material added to master bank.")
-        return redirect('materials:material_bank')
+        return redirect('materials:material_home')
         
     return render(request, 'materials/material_list.html', {'materials': materials})
 

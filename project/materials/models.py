@@ -4,7 +4,8 @@ from construction.models import Project
 class Material(models.Model):
     name = models.CharField(max_length=100)
     unit = models.CharField(max_length=20)
-    stock = models.FloatField()
+    initial_stock = models.FloatField(default=0)  # Starting stock
+    stock = models.FloatField(default=0)          # Current stock
     cost_per_unit = models.DecimalField(max_digits=12, decimal_places=2)
 
     def __str__(self):

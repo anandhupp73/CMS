@@ -8,6 +8,17 @@
 </head>
 <body class="bg-slate-50 p-8">
     <div class="max-w-6xl mx-auto">
+        
+        <div class="mb-6">
+            <a href="{% if request.user.role.name == 'Admin' %}{% url 'admin_dashboard' %}
+                     {% elif request.user.role.name == 'Project Manager' %}{% url 'construction:construction_home' %}
+                     {% elif request.user.role.name == 'Contractor' %}{% url 'contractors:contractors_home' %}
+                     {% else %}/{% endif %}" 
+               class="inline-flex items-center text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-slate-600 transition-colors">
+                <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
+            </a>
+        </div>
+
         <div class="flex justify-between items-center mb-10">
             <div>
                 <h1 class="text-3xl font-black text-slate-800 tracking-tight">Material Bank</h1>
@@ -54,7 +65,7 @@
                     {% csrf_token %}
                     <input type="text" name="name" placeholder="Material Name" class="w-full p-3 border border-slate-200 rounded-xl outline-none" required>
                     <input type="text" name="unit" placeholder="Unit (e.g., Kg, Liters, Bags)" class="w-full p-3 border border-slate-200 rounded-xl outline-none" required>
-                    <input type="number" step="0.01" name="stock" placeholder="Initial Stock" class="w-full p-3 border border-slate-200 rounded-xl outline-none" required>
+                    <input type="number" step="0.01" name="initial_stock" placeholder="Initial Stock" class="w-full p-3 border border-slate-200 rounded-xl outline-none" required>
                     <input type="number" step="0.01" name="cost_per_unit" placeholder="Cost Per Unit" class="w-full p-3 border border-slate-200 rounded-xl outline-none" required>
                     <div class="flex gap-2 pt-4">
                         <button type="button" onclick="document.getElementById('addModal').classList.add('hidden')" class="flex-1 py-3 text-xs font-bold uppercase text-slate-400">Cancel</button>
