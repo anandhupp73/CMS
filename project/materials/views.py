@@ -24,13 +24,15 @@ def material_bank(request):
             return redirect('materials:material_bank')
         
         initial_stock = float(request.POST.get('initial_stock'))
+        cost_per_unit = float(request.POST.get('cost_per_unit'))
+
             
         Material.objects.create(
             name=request.POST.get('name'),
             unit=request.POST.get('unit'),
             initial_stock=initial_stock,
             stock=initial_stock,
-            cost_per_unit=request.POST.get('cost_per_unit')
+            cost_per_unit=cost_per_unit
         )
         messages.success(request, "Material added to master bank.")
         return redirect('materials:material_home')
@@ -63,3 +65,16 @@ def project_material_usage(request, project_id):
         'materials': materials,
         'usage_history': usage_history
     })
+    
+@login_required
+@user_passes_test(can_add_materials)
+def update_material_stock(request, material_id):
+    material = get_object_or_404(Material, id=material_id)
+    
+    if request.method == 'POST':
+        added_qty = float(request.POST.get('added_quantity'))
+        material.stock += added_qty 
+        material.save()
+        messages.success(request, f"Added {added_qty} to stock.")
+        return redirect('materials:material_bank')
+    return render(request, 'materials/update_stock.html', {'material': material})

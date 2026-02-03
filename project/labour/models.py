@@ -1,5 +1,6 @@
 from django.db import models
 from construction.models import Project
+from decimal import Decimal
 
 class Labour(models.Model):
     name = models.CharField(max_length=100)
@@ -14,6 +15,7 @@ class Attendance(models.Model):
     date = models.DateField()
     hours_worked = models.PositiveIntegerField()
 
+    
     def calculate_wage(self):
-        return (self.hours_worked / 8) * self.labour.wage_per_day
+        return (Decimal(self.hours_worked) / Decimal(8)) * self.labour.wage_per_day
     

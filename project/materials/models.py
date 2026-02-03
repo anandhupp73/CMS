@@ -1,5 +1,6 @@
 from django.db import models
 from construction.models import Project
+from django.db.models import Sum
 
 class Material(models.Model):
     name = models.CharField(max_length=100)
@@ -10,6 +11,12 @@ class Material(models.Model):
 
     def __str__(self):
         return self.name
+    
+    @property
+    def total_used(self):
+        # This looks at the related MaterialUsage records and sums 'quantity_used'
+        usage = self.materialusage_set.aggregate(total=Sum('quantity_used'))['total']
+        return usage if usage else 0.0
     
 class MaterialUsage(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
