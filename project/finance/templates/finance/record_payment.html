@@ -2,33 +2,69 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Record Payment - CMS</title>
+    <title>Settle Disbursement | CMS Finance</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>body { font-family: 'Inter', sans-serif; }</style>
 </head>
 <body class="bg-slate-50 min-h-screen flex items-center justify-center p-6">
-    <div class="max-w-md w-full bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-200">
-        <h2 class="text-3xl font-black text-slate-800 tracking-tight mb-2">Process Payment</h2>
-        <p class="text-slate-400 text-[10px] mb-8 uppercase tracking-widest font-black">Settling Invoice #{{ invoice.id }} for {{ invoice.project.name }}</p>
 
-        <form method="POST" class="space-y-6">
-            {% csrf_token %}
-            <div>
-                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-2">Total Amount to Pay</label>
-                <input type="number" step="0.01" name="amount" value="{{ invoice.amount }}" required class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-lg">
+    <div class="max-w-md w-full">
+        <a href="{% url 'finance:finance_home' %}" class="inline-flex items-center text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-slate-600 mb-6 transition-colors">
+            <i class="fas fa-arrow-left mr-2"></i> Return to Hub
+        </a>
+
+        <div class="bg-white p-10 rounded-[3rem] shadow-sm border border-slate-200">
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center">
+                    <i class="fas fa-money-check-alt text-xl"></i>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-black text-slate-800 tracking-tighter">Process Payment</h2>
+                    <p class="text-slate-400 text-[9px] uppercase tracking-widest font-black">Invoice #{{ invoice.id }} • {{ invoice.project.name }}</p>
+                </div>
             </div>
-            <div>
-                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-2">Payment Mode</label>
-                <select name="mode" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-sm">
-                    <option value="Bank Transfer">Bank Transfer (NEFT/RTGS)</option>
-                    <option value="UPI">UPI</option>
-                    <option value="Check">Check</option>
-                    <option value="Cash">Cash</option>
-                </select>
+
+            <div class="bg-indigo-50 border border-indigo-100 rounded-3xl p-6 mb-8">
+                <div class="flex justify-between items-center">
+                    <p class="text-[9px] font-black text-indigo-400 uppercase tracking-widest">Available Project Budget</p>
+                    <span class="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></span>
+                </div>
+                <p class="text-2xl font-black text-indigo-900 mt-1">₹{{ invoice.project.budget|floatformat:2 }}</p>
             </div>
-            <button type="submit" class="w-full bg-emerald-600 text-white font-black py-5 rounded-2xl uppercase tracking-widest text-[10px] shadow-xl shadow-emerald-100">
-                Confirm Transaction
-            </button>
-        </form>
+
+            <form method="POST" class="space-y-6">
+                {% csrf_token %}
+                
+                <div>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Confirm Disbursement Amount (₹)</label>
+                    <input type="number" step="0.01" name="amount" value="{{ invoice.amount }}" required 
+                           class="w-full p-5 bg-slate-50 border border-slate-200 rounded-2xl font-black text-2xl text-slate-900 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all">
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Payment Method</label>
+                    <select name="mode" class="w-full p-5 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-sm outline-none focus:border-emerald-500 transition-all cursor-pointer">
+                        <option value="Bank Transfer">Bank Transfer (NEFT/RTGS)</option>
+                        <option value="UPI">UPI / Digital Wallet</option>
+                        <option value="Corporate Check">Corporate Check</option>
+                        <option value="Petty Cash">On-Site Petty Cash</option>
+                    </select>
+                </div>
+
+                <div class="pt-4">
+                    <button type="submit" class="w-full bg-emerald-600 text-white font-black py-5 rounded-2xl uppercase tracking-[0.2em] text-[10px] shadow-xl shadow-emerald-100 hover:bg-slate-900 transition-all active:scale-95">
+                        Confirm & Release Funds
+                    </button>
+                </div>
+            </form>
+            
+            <p class="text-center text-[9px] text-slate-400 font-bold uppercase mt-8 tracking-tighter">
+                <i class="fas fa-shield-alt mr-1"></i> Transaction will be logged for audit
+            </p>
+        </div>
     </div>
+
 </body>
 </html>

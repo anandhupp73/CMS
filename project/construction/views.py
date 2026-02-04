@@ -6,6 +6,10 @@ from .models import *
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from contractors.models import *
+from decimal import Decimal
+from django.db.models import Sum, F, ExpressionWrapper, DecimalField, Subquery, OuterRef
+from finance.models import Payment 
+from materials.models import MaterialUsage
 
 User = get_user_model()
 
@@ -22,11 +26,6 @@ def is_pm_or_sup(user):
     return user.role and user.role.name in ['Project Manager', 'Supervisor']
 
 
-
-from decimal import Decimal
-from django.db.models import Sum, F, ExpressionWrapper, DecimalField, Subquery, OuterRef
-from finance.models import Payment # Ensure these are imported
-from materials.models import MaterialUsage
 
 @login_required
 @user_passes_test(is_pm)
@@ -160,27 +159,16 @@ def project_detail(request, project_id):
     project = get_object_or_404(Project, id=project_id)
     phases = project.phases.all()
     supervisors = ProjectSupervisor.objects.filter(project=project).select_related('supervisor')
-    
-    # NEW: Fetch Contractors
     contractors = ProjectContractor.objects.filter(project=project).select_related('contractor')
     
-    # NEW: Financial Calculations for the Header Cards
-    # 1. Total Cash Actually Paid
-    total_paid_cash = Payment.objects.filter(
-        invoice__project=project
-    ).aggregate(total=Sum('paid_amount'))['total'] or Decimal('0.00')
-
-    # 2. Total Material Value Consumed
-    total_material_cost = MaterialUsage.objects.filter(
-        project=project
-    ).aggregate(
-        total=Sum(ExpressionWrapper(
-            F('quantity_used') * F('material__cost_per_unit'),
-            output_field=DecimalField(max_digits=15, decimal_places=2)
-        ))
+    all_invoices = Invoice.objects.filter(project=project).select_related('contractor__contractor', 'phase').order_by('-created_at')
+    
+    total_paid_cash = Payment.objects.filter(invoice__project=project).aggregate(total=Sum('paid_amount'))['total'] or Decimal('0.00')
+    
+    total_material_cost = MaterialUsage.objects.filter(project=project).aggregate(
+        total=Sum(ExpressionWrapper(F('quantity_used') * F('material__cost_per_unit'), output_field=DecimalField(max_digits=15, decimal_places=2)))
     )['total'] or Decimal('0.00')
 
-    # 3. Reconstruct the Initial Budget (Since we subtract from 'budget' field directly)
     original_total = project.budget + total_paid_cash + total_material_cost
 
     return render(request, 'construction/project_detail.html', {
@@ -188,6 +176,7 @@ def project_detail(request, project_id):
         'phases': phases,
         'supervisors': supervisors,
         'contractors': contractors,
+        'invoices': all_invoices, 
         'total_paid_cash': total_paid_cash,
         'total_material_cost': total_material_cost,
         'original_total': original_total,
@@ -281,10 +270,9 @@ def supervisor_dashboard(request):
 @login_required
 @user_passes_test(is_sup)
 def submit_daily_log(request):
-    # CRITICAL: We must fetch these so the sidebar/navbar links don't crash
+    
     assigned_projects = Project.objects.filter(projectsupervisor__supervisor=request.user)
     
-    # This is what line 118 in your dashboard template is looking for!
     assigned_phases = ProjectPhase.objects.filter(project__in=assigned_projects).select_related('project')
 
     if request.method == 'POST':
@@ -357,3 +345,33 @@ def assign_contractor(request, project_id):
         'contractors':contractors
     })
     
+@login_required
+@user_passes_test(is_pm)
+def pending_invoices(request):
+    invoices = Invoice.objects.filter(
+        project__manager=request.user, 
+        status='PENDING'
+    ).select_related('contractor__contractor', 'project', 'phase').order_by('-created_at') 
+    
+    return render(request, 'construction/pending_invoices.html', {'invoices': invoices})
+
+@login_required
+@user_passes_test(is_pm)
+def approve_invoice_proceed(request, invoice_id):
+    invoice = get_object_or_404(Invoice, id=invoice_id, project__manager=request.user)
+
+    if request.method == 'POST':
+        action = request.POST.get('action') # 'approve' or 'reject'
+        
+        if action == 'approve':
+            invoice.status = 'APPROVED'
+            invoice.save()
+            messages.success(request, f"Invoice #{invoice.id} approved and sent to Accountant.")
+        elif action == 'reject':
+            invoice.status = 'REJECTED' 
+            invoice.save()
+            messages.warning(request, f"Invoice #{invoice.id} has been rejected.")
+            
+        return redirect('construction:pending_invoices')
+
+    return render(request, 'construction/approve_confirm.html', {'invoice': invoice})

@@ -1,0 +1,63 @@
+{% extends "construction/pm_dashboard.html" %}
+
+{% block content %}
+<main class="max-w-2xl mx-auto p-6 pt-10">
+    <a href="{% url 'construction:construction_home' %}" class="inline-flex items-center text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 mb-8 transition-colors">
+        <i class="fas fa-arrow-left mr-2"></i> Cancel & Return
+    </a>
+
+    <div class="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden">
+        <div class="bg-indigo-600 p-8 text-white">
+            <div class="flex justify-between items-start mb-4">
+                <span class="px-3 py-1 bg-white/20 rounded-full text-[9px] font-black uppercase tracking-widest">Technical Review</span>
+                <span class="text-[9px] font-black uppercase tracking-widest opacity-60">Inv #{{ invoice.id }}</span>
+            </div>
+            <h2 class="text-3xl font-black tracking-tighter">Verify Site Work</h2>
+            <p class="text-indigo-100 text-xs font-medium mt-1">Review the breakdown below before approving for payment.</p>
+        </div>
+
+        <div class="p-10 space-y-8">
+            <div class="grid grid-cols-2 gap-8">
+                <div>
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Project</p>
+                    <p class="font-bold text-slate-800">{{ invoice.project.name }}</p>
+                </div>
+                <div>
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Milestone</p>
+                    <p class="font-bold text-slate-800">{{ invoice.phase.phase_name }}</p>
+                </div>
+            </div>
+
+            <div class="bg-slate-50 rounded-3xl p-6 border border-slate-100">
+                <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Contractor's Site Log</h4>
+                <div class="text-xs font-mono text-slate-600 leading-relaxed whitespace-pre-line bg-white p-4 rounded-xl border border-slate-200">
+                    {{ invoice.description }}
+                </div>
+            </div>
+
+            <div class="flex justify-between items-end border-t border-slate-100 pt-8">
+                <div>
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Invoice Amount</p>
+                    <p class="text-4xl font-black text-slate-900">₹ {{ invoice.amount|floatformat:2 }}</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Available Budget</p>
+                    <p class="text-sm font-bold text-slate-500">₹ {{ invoice.project.budget|floatformat:2 }}</p>
+                </div>
+            </div>
+
+            <form method="POST" class="grid grid-cols-2 gap-4">
+                {% csrf_token %}
+                <button type="submit" name="action" value="reject" 
+                        class="py-4 rounded-2xl border border-slate-200 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:bg-red-50 hover:text-red-500 hover:border-red-100 transition-all">
+                    Reject Work
+                </button>
+                <button type="submit" name="action" value="approve" 
+                        class="py-4 rounded-2xl bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest shadow-xl shadow-indigo-100 hover:bg-slate-900 transition-all">
+                    Approve & Forward
+                </button>
+            </form>
+        </div>
+    </div>
+</main>
+{% endblock %}

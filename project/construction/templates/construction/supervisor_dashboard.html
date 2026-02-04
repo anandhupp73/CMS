@@ -118,7 +118,7 @@
                         </div>
                     </a>
 
-                    <a href="{% url 'labour:project_attendance' project_id=assigned_projects.first.id %}" 
+                    {% comment %} <a href="{% url 'labour:project_attendance' project_id=assigned_projects.first.id %}" 
                     class="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm hover:shadow-md transition-all group">
                         <div class="flex items-center gap-4">
                             <div class="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all shadow-sm">
@@ -142,7 +142,7 @@
                                 <h4 class="text-sm font-bold text-slate-800">Material Usage</h4>
                             </div>
                         </div>
-                    </a>
+                    </a> {% endcomment %}
                 </div>
                 {% else %}
                 <div class="bg-indigo-50 border border-indigo-100 p-8 rounded-[2rem] mb-10 text-center">

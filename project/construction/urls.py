@@ -18,6 +18,8 @@ urlpatterns = [
     path('report-issue/<int:phase_id>/',views.report_issue,name='report_issue'),
     path('pm-issues/',views.pm_issues,name='pm_issues'),
     path('daily-log/submit/', views.submit_daily_log, name='submit_daily_log'),
+    path('invoices/pending/', views.pending_invoices, name='pending_invoices'),
+    path('invoice/<int:invoice_id>/approve/', views.approve_invoice_proceed, name='approve_invoice_proceed'),
 
 
 ]

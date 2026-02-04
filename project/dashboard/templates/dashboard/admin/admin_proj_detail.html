@@ -3,10 +3,10 @@
 {% block content %}
 <div class="space-y-8 pb-12">
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+        {% comment %} <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
             <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Initial Budget</p>
             <p class="text-xl font-black text-slate-900">${{ initial_budget|floatformat:2 }}</p>
-        </div>
+        </div> {% endcomment %}
         <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
             <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Remaining Balance</p>
             <p class="text-xl font-black text-emerald-600">${{ project.budget|floatformat:2 }}</p>
