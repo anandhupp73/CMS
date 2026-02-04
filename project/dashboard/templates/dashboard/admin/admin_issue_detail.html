@@ -1,0 +1,51 @@
+{% extends "dashboard/admin/dashboard.html" %}
+{% block content %}
+<main class="max-w-3xl mx-auto p-6">
+    <a href="{% url 'admin_project_detail' issue.project.id %}" class="inline-flex items-center text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 mb-8">
+        <i class="fas fa-arrow-left mr-2"></i> Back to Audit
+    </a>
+
+    <div class="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden">
+        <div class="p-10 border-b border-slate-100 flex justify-between items-center bg-red-50/30">
+            <div>
+                <span class="px-3 py-1 bg-red-100 text-red-600 text-[9px] font-black uppercase rounded-full tracking-widest">Incident Report</span>
+                <h2 class="text-3xl font-black text-slate-800 tracking-tighter mt-4">{{ issue.get_issue_type_display }}</h2>
+            </div>
+            <div class="text-right">
+                <p class="text-[10px] font-black text-slate-400 uppercase">Created On</p>
+                <p class="font-bold text-slate-700">{{ issue.created_at|date:"d M Y, H:i" }}</p>
+            </div>
+        </div>
+
+        <div class="p-10 space-y-8">
+            <div class="grid grid-cols-2 gap-8">
+                <div>
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Affected Milestone</p>
+                    <p class="font-bold text-slate-800">{{ issue.phase.phase_name }}</p>
+                </div>
+                <div>
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Reported By</p>
+                    <p class="font-bold text-slate-800">{{ issue.reported_by.get_full_name|default:issue.reported_by.username }}</p>
+                </div>
+            </div>
+
+            <div>
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Incident Description</p>
+                <div class="p-6 bg-slate-50 rounded-3xl text-sm leading-relaxed text-slate-600 border border-slate-100">
+                    {{ issue.description }}
+                </div>
+            </div>
+
+            <div class="pt-8 border-t border-slate-100 flex items-center justify-between">
+                <p class="text-[10px] font-black text-slate-400 uppercase">Status: 
+                    {% if issue.is_resolved %}
+                        <span class="text-emerald-500 ml-2">RESOLVED</span>
+                    {% else %}
+                        <span class="text-red-500 ml-2 animate-pulse">ACTIVE THREAT</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}

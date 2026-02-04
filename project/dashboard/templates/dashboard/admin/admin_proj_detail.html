@@ -1,29 +1,30 @@
 {% extends "dashboard/admin/dashboard.html" %}
-{% block title %}Project Details{% endblock %}
+{% block title %}{{ project.name }} | Admin Audit{% endblock %}
+
 {% block content %}
 <div class="space-y-8 pb-12">
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {% comment %} <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+        <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
             <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Initial Budget</p>
-            <p class="text-xl font-black text-slate-900">${{ initial_budget|floatformat:2 }}</p>
-        </div> {% endcomment %}
-        <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
-            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Remaining Balance</p>
-            <p class="text-xl font-black text-emerald-600">${{ project.budget|floatformat:2 }}</p>
+            <p class="text-xl font-black text-slate-900">₹{{ initial_budget|floatformat:2 }}</p>
         </div>
         <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
-            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Spent</p>
-            <p class="text-xl font-black text-indigo-600">${{ spent_budget|floatformat:2 }}</p>
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Current Balance</p>
+            <p class="text-xl font-black text-emerald-600">₹{{ project.budget|floatformat:2 }}</p>
         </div>
         <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
-            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Budget Usage</p>
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Burn Rate (%)</p>
             <div class="flex items-center gap-2">
                 <p class="text-xl font-black text-slate-900">{{ budget_percent }}%</p>
                 <div class="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
                     <div class="h-full {% if budget_percent > 90 %}bg-red-500{% else %}bg-indigo-500{% endif %}" 
-                        style="width: {{ budget_percent }}%"></div>
+                         style="width: {{ budget_percent }}%"></div>
                 </div>
             </div>
+        </div>
+        <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Issues Reported</p>
+            <p class="text-xl font-black text-red-500">{{ reported_issues.count }}</p>
         </div>
     </div>
 
@@ -31,38 +32,79 @@
         <div class="xl:col-span-2 space-y-8">
             
             <div class="bg-white border border-slate-200 rounded-[2.5rem] p-8 shadow-sm">
-                <h4 class="font-black text-slate-800 uppercase text-xs tracking-widest mb-6">Phase Timeline</h4>
-                <div class="space-y-6">
-                    {% for phase in project.phases.all %}
-                    <div class="relative pl-6 border-l-2 {% if phase.progress == 100 %}border-emerald-500{% else %}border-slate-200{% endif %}">
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="text-sm font-bold text-slate-700">{{ phase.phase_name }}</span>
-                            <span class="text-xs font-black {% if phase.progress == 100 %}text-emerald-500{% else %}text-slate-400{% endif %}">{{ phase.progress }}%</span>
+                <h4 class="font-black text-slate-800 uppercase text-xs tracking-widest mb-6">Site Evidence Feed</h4>
+                <div class="space-y-8">
+                    {% for log in site_logs %}
+                    <div class="flex flex-col md:flex-row gap-6 border-b border-slate-50 pb-8 last:border-0">
+                        <div class="w-full md:w-48 shrink-0">
+                            {% if log.photo %}
+                                <img src="{{ log.photo.url }}" class="w-full h-32 object-cover rounded-2xl shadow-sm hover:scale-105 transition-transform cursor-pointer" alt="Site Photo">
+                            {% else %}
+                                <div class="w-full h-32 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-300">
+                                    <i class="fas fa-image text-2xl"></i>
+                                </div>
+                            {% endif %}
                         </div>
-                        <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
-                            <div class="h-full {% if phase.progress == 100 %}bg-emerald-500{% else %}bg-indigo-500{% endif %}" style="width: {{ phase.progress }}%"></div>
+                        <div class="flex-1">
+                            <div class="flex justify-between items-start mb-2">
+                                <div>
+                                    <p class="text-[10px] font-black text-orange-500 uppercase tracking-tighter">{{ log.date|date:"l, d M Y" }}</p>
+                                    <h5 class="text-sm font-bold text-slate-800">By: {{ log.supervisor.get_full_name|default:log.supervisor.username }}</h5>
+                                </div>
+                                {% if log.weather_condition %}
+                                <span class="bg-blue-50 text-blue-600 text-[9px] font-black px-2 py-1 rounded-lg uppercase">
+                                    <i class="fas fa-cloud-sun mr-1"></i> {{ log.weather_condition }}
+                                </span>
+                                {% endif %}
+                            </div>
+                            <p class="text-xs text-slate-500 leading-relaxed">{{ log.work_done }}</p>
                         </div>
                     </div>
+                    {% empty %}
+                    <p class="text-center py-10 text-slate-300 text-xs italic">No site logs recorded yet.</p>
                     {% endfor %}
                 </div>
             </div>
 
             <div class="bg-white border border-slate-200 rounded-[2.5rem] p-8 shadow-sm overflow-hidden">
-                <h4 class="font-black text-slate-800 uppercase text-xs tracking-widest mb-6">Material Consumption</h4>
+                <h4 class="font-black text-slate-800 uppercase text-xs tracking-widest mb-6">Material Audit</h4>
                 <table class="w-full text-left text-sm">
                     <thead>
                         <tr class="text-[10px] text-slate-400 uppercase font-black border-b border-slate-100">
-                            <th class="pb-4">Material</th>
-                            <th class="pb-4">Phase</th>
-                            <th class="pb-4 text-right">Quantity</th>
+                            <th class="pb-4">Transaction Date</th>
+                            <th class="pb-4">Material & Phase</th>
+                            <th class="pb-4 text-right">Quantity Used</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-50">
                         {% for usage in material_usage %}
-                        <tr class="hover:bg-slate-50 transition">
-                            <td class="py-4 font-bold text-slate-700">{{ usage.material.name }}</td>
-                            <td class="py-4 text-slate-500">{{ usage.phase.phase_name|default:"General" }}</td>
-                            <td class="py-4 text-right font-mono text-red-500 font-bold">-{{ usage.quantity_used }} {{ usage.material.unit }}</td>
+                        <tr class="hover:bg-slate-50 transition group">
+                            <td class="py-4">
+                                <p class="text-xs font-bold text-slate-700">{{ usage.date|date:"d M Y" }}</p>
+                                <p class="text-[9px] text-slate-400 uppercase font-black tracking-tighter">Verified Log</p>
+                            </td>
+                            <td class="py-4">
+                                <p class="font-bold text-slate-700 group-hover:text-indigo-600 transition-colors">{{ usage.material.name }}</p>
+                                <p class="text-[10px] text-slate-500 font-medium">
+                                    <i class="fas fa-layer-group text-[8px] mr-1"></i>
+                                    {{ usage.phase.phase_name|default:"General Project Stock" }}
+                                </p>
+                            </td>
+                            <td class="py-4 text-right">
+                                <p class="font-mono text-red-500 font-black text-base">-{{ usage.quantity_used }} {{ usage.material.unit }}</p>
+                                <p class="text-[9px] text-slate-400 font-bold uppercase mt-1">
+                                    Est. Value: ₹{% widthratio usage.quantity_used 1 usage.material.cost_per_unit %}
+                                </p>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" class="py-20 text-center">
+                                <div class="opacity-20 flex flex-col items-center">
+                                    <i class="fas fa-boxes text-4xl mb-4"></i>
+                                    <p class="text-xs font-black uppercase tracking-widest">No materials consumed yet</p>
+                                </div>
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -72,8 +114,48 @@
 
         <div class="space-y-8">
             <div class="bg-white border border-slate-200 rounded-[2.5rem] p-8 shadow-sm">
-                <h4 class="font-black text-slate-800 uppercase text-xs tracking-widest mb-6">Site Personnel</h4>
+                <h4 class="font-black text-slate-800 uppercase text-xs tracking-widest mb-6">Critical Alerts</h4>
                 <div class="space-y-4">
+                    {% for issue in reported_issues %}
+                    <a href="{% url 'admin_issue_detail' issue.id %}" class="block p-4 bg-red-50 border border-red-100 rounded-2xl hover:bg-red-100 transition-all">
+                        <div class="p-4 bg-red-50 border border-red-100 rounded-2xl">
+                            <div class="flex justify-between items-start mb-1">
+                                <span class="text-[9px] font-black text-red-600 uppercase">{{ issue.issue_type }}</span>
+                                <span class="text-[8px] text-red-400 font-bold">{{ issue.created_at|timesince }} ago</span>
+                            </div>
+                            <p class="text-xs font-bold text-slate-800">{{ issue.phase.phase_name }}</p>
+                            <p class="text-[10px] text-slate-500 mt-1 italic">{{ issue.description|truncatewords:15 }}</p>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-6">
+                            <i class="fas fa-shield-check text-emerald-200 text-2xl mb-2"></i>
+                            <p class="text-[10px] font-black text-slate-400 uppercase">No active issues</p>
+                        </div>
+                        {% endfor %}
+                    </a>
+                </div>
+            </div>
+
+            <div class="bg-white border border-slate-200 rounded-[2.5rem] p-8 shadow-sm">
+                <h4 class="font-black text-slate-800 uppercase text-xs tracking-widest mb-6">Financial Invoices</h4>
+                <div class="space-y-4">
+                    {% for inv in invoices %}
+                    <a href="{% url 'admin_invoice_detail' inv.id %}" class="flex justify-between items-center p-3 rounded-2xl hover:bg-slate-50 transition border border-transparent hover:border-slate-100">
+                        <div class="flex justify-between items-center p-3 rounded-2xl hover:bg-slate-50 transition border border-transparent hover:border-slate-100">
+                            <div>
+                                <p class="text-xs font-bold text-slate-800">₹{{ inv.amount }}</p>
+                                <p class="text-[9px] text-slate-400 font-bold uppercase">{{ inv.status }} • {{ inv.contractor.contractor.username }}</p>
+                            </div>
+                            <span class="w-2 h-2 rounded-full {% if inv.status == 'PAID' %}bg-emerald-500{% elif inv.status == 'APPROVED' %}bg-blue-500{% else %}bg-amber-500{% endif %}"></span>
+                        </div>
+                        {% endfor %}
+                    </a>
+                </div>
+            </div>
+
+            <div class="bg-white border border-slate-200 rounded-[2.5rem] p-8 shadow-sm">
+                <h4 class="font-black text-slate-800 uppercase text-xs tracking-widest mb-6">Project Command</h4>
+                <div class="space-y-6">
                     <div class="flex items-center gap-3">
                         <div class="w-8 h-8 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center text-[10px] font-black">PM</div>
                         <div>
@@ -82,52 +164,17 @@
                         </div>
                     </div>
                     <hr class="border-slate-50">
-                    <div class="space-y-6">
-                        <div>
-                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Supervisors</p>
-                            <div class="space-y-3">
-                                {% for ps in project.projectsupervisor_set.all %}
-                                <div class="flex items-center gap-3">
-                                    <div class="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center text-[10px] font-black">S</div>
-                                    <p class="text-xs font-bold text-slate-700">{{ ps.supervisor.get_full_name|default:ps.supervisor.username }}</p>
-                                </div>
-                                {% empty %}
-                                <p class="text-xs text-slate-400 italic pl-1">No supervisors assigned</p>
-                                {% endfor %}
+                    <div>
+                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Assigned Supervisors</p>
+                        <div class="space-y-3">
+                            {% for ps in project.projectsupervisor_set.all %}
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center text-[10px] font-black">S</div>
+                                <p class="text-xs font-bold text-slate-700">{{ ps.supervisor.username }}</p>
                             </div>
-                        </div>
-
-                        <hr class="border-slate-50">
-
-                        <div>
-                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Contractors</p>
-                            <div class="space-y-3">
-                                {% for pc in project.projectcontractor_set.all %}
-                                <div class="flex items-center gap-3">
-                                    <div class="w-8 h-8 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center text-[10px] font-black">C</div>
-                                    <p class="text-xs font-bold text-slate-700">{{ pc.contractor.get_full_name|default:pc.contractor.username }}</p>
-                                </div>
-                                {% empty %}
-                                <p class="text-xs text-slate-400 italic pl-1">No contractors assigned</p>
-                                {% endfor %}
-                            </div>
+                            {% endfor %}
                         </div>
                     </div>
-                </div>
-            </div>
-
-            <div class="bg-white border border-slate-200 rounded-[2.5rem] p-8 shadow-sm">
-                <h4 class="font-black text-slate-800 uppercase text-xs tracking-widest mb-6">Invoices</h4>
-                <div class="space-y-4">
-                    {% for inv in invoices %}
-                    <div class="flex justify-between items-center p-3 rounded-2xl hover:bg-slate-50 transition border border-transparent hover:border-slate-100">
-                        <div>
-                            <p class="text-xs font-bold text-slate-800">${{ inv.amount }}</p>
-                            <p class="text-[9px] text-slate-400 font-bold uppercase">{{ inv.status }} • {{ inv.phase.phase_name|slice:":10" }}</p>
-                        </div>
-                        <span class="w-2 h-2 rounded-full {% if inv.status == 'PAID' %}bg-emerald-500{% elif inv.status == 'APPROVED' %}bg-blue-500{% else %}bg-amber-500{% endif %}"></span>
-                    </div>
-                    {% endfor %}
                 </div>
             </div>
         </div>

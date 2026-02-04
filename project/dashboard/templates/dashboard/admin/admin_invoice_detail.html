@@ -1,0 +1,50 @@
+{% extends "dashboard/admin/dashboard.html" %}
+{% block content %}
+<main class="max-w-3xl mx-auto p-6">
+    <a href="{% url 'admin_project_detail' invoice.project.id %}" class="inline-flex items-center text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 mb-8">
+        <i class="fas fa-arrow-left mr-2"></i> Back to Audit
+    </a>
+
+    <div class="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden">
+        <div class="p-10 border-b border-slate-100 flex justify-between items-end">
+            <div>
+                <p class="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-2">Invoice #{{ invoice.id }}</p>
+                <h2 class="text-4xl font-black text-slate-800 tracking-tighter">₹{{ invoice.amount }}</h2>
+            </div>
+            <span class="px-4 py-2 {% if invoice.status == 'PAID' %}bg-emerald-100 text-emerald-600{% else %}bg-amber-100 text-amber-600{% endif %} text-[10px] font-black uppercase rounded-xl tracking-widest">
+                {{ invoice.status }}
+            </span>
+        </div>
+
+        <div class="p-10 space-y-8">
+            <div class="grid grid-cols-2 gap-8">
+                <div>
+                    <p class="text-[10px] font-black text-slate-400 uppercase mb-1">Contractor</p>
+                    <p class="font-bold text-slate-800">{{ invoice.contractor.contractor.get_full_name|default:invoice.contractor.contractor.username }}</p>
+                </div>
+                <div>
+                    <p class="text-[10px] font-black text-slate-400 uppercase mb-1">Project Milestone</p>
+                    <p class="font-bold text-slate-800">{{ invoice.phase.phase_name }}</p>
+                </div>
+            </div>
+
+            <div>
+                <p class="text-[10px] font-black text-slate-400 uppercase mb-3">Work Breakdown / Description</p>
+                <div class="p-6 bg-slate-50 rounded-3xl font-mono text-xs text-slate-600 border border-slate-100 whitespace-pre-line">
+                    {{ invoice.description|default:"No description provided." }}
+                </div>
+            </div>
+
+            {% if payment %}
+            <div class="p-6 bg-emerald-50 rounded-3xl border border-emerald-100">
+                <h4 class="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-4">Payment Disbursement Log</h4>
+                <div class="flex justify-between items-center text-xs font-bold text-slate-700">
+                    <p>Method: {{ payment.mode }}</p>
+                    <p>Settled On: {{ payment.paid_date|date:"d M Y" }}</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</main>
+{% endblock %}

@@ -165,136 +165,68 @@
 
                         <div class="space-y-6 pb-20">
                             {% for project in projects %}
-                            <div
-                                class="bg-white rounded-3xl border border-slate-200 shadow-sm p-8 transition-all hover:shadow-md"
-                            >
+                            <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-8 transition-all hover:shadow-md">
                                 <div>
-                                    <a
-                                        href="{% url 'construction:project_detail' project.id %}"
-                                    >
-                                        <!-- Header -->
-                                        <div
-                                            class="flex justify-between items-start"
-                                        >
+                                    <a href="{% url 'construction:project_detail' project.id %}">
+                                        <div class="flex justify-between items-start">
                                             <div class="space-y-2">
-                                                <div
-                                                    class="flex items-center gap-3"
-                                                >
-                                                    <h2
-                                                        class="text-2xl font-bold text-slate-800 uppercase tracking-tight"
-                                                    >
-                                                        {{ project.name }}
-                                                    </h2>
-
-                                                    <!-- Status (optional / static for now) -->
-                                                    <span
-                                                        class="bg-slate-100 text-slate-600 text-[9px] font-black px-2 py-0.5 rounded uppercase"
-                                                    >
-                                                        Pending
+                                                <div class="flex items-center gap-3">
+                                                    <h2 class="text-2xl font-bold text-slate-800 uppercase tracking-tight">{{ project.name }}</h2>
+                                                    <span class="bg-emerald-100 text-emerald-600 text-[9px] font-black px-2 py-0.5 rounded uppercase">
+                                                        {% if project.is_active %}Active{% else %}Completed{% endif %}
                                                     </span>
                                                 </div>
-
-                                                <div
-                                                    class="flex gap-4 text-slate-400 text-xs font-medium"
-                                                >
-                                                    <span>
-                                                        <i
-                                                            class="far fa-calendar mr-1"
-                                                        ></i>
-                                                        {{ project.start_date }}
-                                                        - {{ project.end_date }}
-                                                    </span>
+                                                <div class="flex gap-4 text-slate-400 text-xs font-medium">
+                                                    <span><i class="far fa-calendar mr-1"></i> {{ project.start_date }} - {{ project.end_date }}</span>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <!-- Body -->
-                                        <div
-                                            class="grid grid-cols-1 lg:grid-cols-2 gap-10 mt-8"
-                                        >
-                                            <!-- Progress Section -->
+                                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 mt-8">
                                             <div class="space-y-6">
-                                                <!-- Project Progress -->
                                                 <div>
-                                                    <div
-                                                        class="flex justify-between text-xs font-bold mb-2 uppercase tracking-tighter text-slate-500"
-                                                    >
-                                                        <span
-                                                            >Project
-                                                            Progress</span
-                                                        >
-                                                        <span
-                                                            class="text-slate-900"
-                                                            >{{project.total_progress}}% Complete</span
-                                                        >
+                                                    <div class="flex justify-between text-xs font-bold mb-2 uppercase tracking-tighter text-slate-500">
+                                                        <span>Physical Work</span>
+                                                        <span class="text-slate-900">{{ project.total_progress|default:0 }}% Complete</span>
                                                     </div>
-                                                    <div
-                                                        class="progress-bar-bg"
-                                                    >
-                                                        <div
-                                                            class="progress-fill"
-                                                            style="width: {{ project.total_progress }}%;"
-                                                        ></div>
+                                                    <div class="progress-bar-bg">
+                                                        <div class="progress-fill" style="width: {{ project.total_progress|default:0 }}%;"></div>
                                                     </div>
                                                 </div>
 
-                                                <!-- Budget Usage -->
                                                 <div>
-                                                    <div
-                                                        class="flex justify-between text-xs font-bold mb-2 uppercase tracking-tighter text-slate-500"
-                                                    >
-                                                        <span
-                                                            >Budget Usage</span
-                                                        >
-                                                        <span
-                                                            class="text-slate-900"
-                                                            >$0 / {{project.budget}}</span
-                                                        >
+                                                    {% with total_spent=project.cash_spent|default:0|add:project.material_spent|default:0 %}
+                                                    {% with initial=project.budget|add:total_spent %}
+                                                    <div class="flex justify-between text-xs font-bold mb-2 uppercase tracking-tighter text-slate-500">
+                                                        <span>Budget Burned</span>
+                                                        <span class="text-slate-900">₹{{ total_spent|floatformat:0 }} / ₹{{ initial|floatformat:0 }}</span>
                                                     </div>
-                                                    <div
-                                                        class="progress-bar-bg"
-                                                    >
-                                                        <div
-                                                            class="progress-fill bg-orange-500"
-                                                            style="width: 0%"
-                                                        ></div>
+                                                    <div class="progress-bar-bg">
+                                                        <div class="progress-fill bg-orange-500" 
+                                                            style="width: {% if initial > 0 %}{% widthratio total_spent initial 100 %}{% else %}0{% endif %}%;">
+                                                        </div>
                                                     </div>
+                                                    {% endwith %}
+                                                    {% endwith %}
                                                 </div>
                                             </div>
 
-                                            <!-- Side Info -->
-                                            <div
-                                                class="bg-slate-50 p-6 rounded-2xl grid grid-cols-2 gap-4 border border-slate-100"
-                                            >
+                                            <div class="bg-slate-50 p-6 rounded-2xl grid grid-cols-2 gap-4 border border-slate-100">
                                                 <div class="col-span-2">
-                                                    <p
-                                                        class="text-[10px] font-bold text-slate-400 uppercase mb-1"
-                                                    >
-                                                        Total Budget
-                                                    </p>
-                                                    <p
-                                                        class="text-lg font-bold text-emerald-600 font-mono"
-                                                    >
-                                                        {{ project.budget }}
-                                                    </p>
+                                                    <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Remaining to Spend</p>
+                                                    <p class="text-lg font-bold text-emerald-600 font-mono">₹{{ project.budget|floatformat:2 }}</p>
                                                 </div>
 
-                                                <div
-                                                    class="col-span-2 pt-2 border-t border-slate-200"
-                                                >
-                                                    <p
-                                                        class="text-[10px] font-bold text-slate-400 uppercase mb-3"
-                                                    >
-                                                        Project Phases
-                                                    </p>
-                                                    <div
-                                                        class="flex flex-wrap gap-2"
-                                                    >
-                                                        <span
-                                                            class="px-3 py-1 bg-slate-200 text-slate-600 rounded-full text-[9px] font-bold uppercase"
-                                                        >
-                                                            Not Started
-                                                        </span>
+                                                <div class="col-span-2 pt-2 border-t border-slate-200">
+                                                    <p class="text-[10px] font-bold text-slate-400 uppercase mb-3">Active Phases</p>
+                                                    <div class="flex flex-wrap gap-2">
+                                                        {% for phase in project.phases.all|slice:":3" %}
+                                                            <span class="px-3 py-1 bg-white border border-slate-200 text-slate-600 rounded-full text-[9px] font-bold uppercase">
+                                                                {{ phase.phase_name }} ({{ phase.progress }}%)
+                                                            </span>
+                                                        {% empty %}
+                                                            <span class="px-3 py-1 bg-slate-200 text-slate-600 rounded-full text-[9px] font-bold uppercase">No Phases Defined</span>
+                                                        {% endfor %}
                                                     </div>
                                                 </div>
                                             </div>
@@ -302,52 +234,28 @@
                                     </a>
                                 </div>
 
-                                <!-- Actions -->
-                                <div
-                                    class="mt-8 pt-6 border-t border-slate-100 flex justify-between items-center"
-                                >
+                                <div class="mt-8 pt-6 border-t border-slate-100 flex justify-between items-center">
                                     <div class="flex gap-4">
-                                        <a
-                                            href="{% url 'construction:add_phase' project.id %}"
-                                            class="flex items-center gap-2 text-[10px] font-bold text-indigo-600 uppercase hover:text-indigo-800 transition-colors"
-                                        >
-                                            <i class="fas fa-plus-circle"></i>
-                                            Add Phase
+                                        <a href="{% url 'construction:add_phase' project.id %}" class="flex items-center gap-2 text-[10px] font-bold text-indigo-600 uppercase hover:text-indigo-800 transition-colors">
+                                            <i class="fas fa-plus-circle"></i> Add Phase
                                         </a>
-                                        <a
-                                            href="{% url 'construction:assign_supervisor' project.id %}"
-                                            class="flex items-center gap-2 text-[10px] font-bold text-indigo-600 uppercase hover:text-indigo-800 transition-colors"
-                                        >
-                                            <i class="fas fa-plus-circle"></i>
-                                            Assign Supervisor
+                                        <a href="{% url 'construction:assign_supervisor' project.id %}" class="flex items-center gap-2 text-[10px] font-bold text-indigo-600 uppercase hover:text-indigo-800 transition-colors">
+                                            <i class="fas fa-user-plus"></i> Assign Supervisor
                                         </a>
-                                        <a
-                                            href="{% url 'construction:assign_contractor' project.id %}"
-                                            class="flex items-center gap-2 text-[10px] font-bold text-emerald-600 uppercase hover:text-emerald-800 transition-colors"
-                                        >
-                                            <i
-                                                class="fas fa-file-signature"
-                                            ></i>
-                                            Assign Contractor
+                                        <a href="{% url 'construction:assign_contractor' project.id %}" class="flex items-center gap-2 text-[10px] font-bold text-emerald-600 uppercase hover:text-emerald-800 transition-colors">
+                                            <i class="fas fa-file-signature"></i> Assign Contractor
                                         </a>
                                     </div>
 
-                                    <a
-                                        href="{% url 'construction:update_progress' project.id %}"
-                                    >
-                                        <button
-                                            class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest shadow-lg"
-                                        >
-                                            Update Progress %
+                                    <a href="{% url 'construction:update_progress' project.id %}">
+                                        <button class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-indigo-100 transition-all active:scale-95">
+                                            Update Stats
                                         </button>
                                     </a>
                                 </div>
                             </div>
-
                             {% empty %}
-                            <p class="text-center text-slate-400 text-sm">
-                                No projects available.
-                            </p>
+                            <p class="text-center text-slate-400 text-sm py-20 font-bold uppercase tracking-widest">No projects currently assigned to you.</p>
                             {% endfor %}
                         </div>
                     </div>

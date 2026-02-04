@@ -7,9 +7,10 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from contractors.models import *
 from decimal import Decimal
-from django.db.models import Sum, F, ExpressionWrapper, DecimalField, Subquery, OuterRef
+from django.db.models import Sum, F, ExpressionWrapper, DecimalField, Subquery, OuterRef, Value
 from finance.models import Payment 
 from materials.models import MaterialUsage
+from django.db.models.functions import Coalesce
 
 User = get_user_model()
 
@@ -25,19 +26,30 @@ def is_sup(user):
 def is_pm_or_sup(user):
     return user.role and user.role.name in ['Project Manager', 'Supervisor']
 
-
-
 @login_required
 @user_passes_test(is_pm)
 def home(request):
-    
+    # 1. Cash Paid Subquery with Coalesce (None -> 0)
+    cash_spent_sq = Payment.objects.filter(
+        invoice__project=OuterRef('pk')
+    ).values('invoice__project').annotate(
+        total=Sum('paid_amount')
+    ).values('total')
+
+    # 2. Material Value Subquery with Coalesce (None -> 0)
+    material_spent_sq = MaterialUsage.objects.filter(
+        project=OuterRef('pk')
+    ).values('project').annotate(
+        total=Sum(ExpressionWrapper(
+            F('quantity_used') * F('material__cost_per_unit'),
+            output_field=DecimalField(max_digits=15, decimal_places=2)
+        ))
+    ).values('total')
+
+    # 3. Annotate using Coalesce to ensure we always get a Decimal(0) instead of None
     projects = Project.objects.filter(manager=request.user).annotate(
-        total_spent=Subquery(
-            Payment.objects.filter(invoice__project=OuterRef('pk'))
-            .values('invoice__project')
-            .annotate(sum=Sum('paid_amount'))
-            .values('sum')
-        )
+        cash_spent=Coalesce(Subquery(cash_spent_sq), Value(0), output_field=DecimalField()),
+        material_spent=Coalesce(Subquery(material_spent_sq), Value(0), output_field=DecimalField())
     ).prefetch_related('phases')
 
     return render(request, 'construction/pm_dashboard.html', {'projects': projects})

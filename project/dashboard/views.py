@@ -108,12 +108,6 @@ def user_create(request):
     })
 
 
-
-from decimal import Decimal
-from django.db.models import Sum, F, ExpressionWrapper, DecimalField
-from materials.models import MaterialUsage
-from finance.models import Payment
-
 @login_required
 @user_passes_test(is_admin)
 def admin_view_projects(request):
@@ -166,7 +160,6 @@ def admin_project_detail(request, project_id):
         'phases', 'projectsupervisor_set__supervisor', 'projectcontractor_set__contractor'
     ), pk=project_id)
 
-    # 1. Material Value (Consumed Resources)
     total_material_cost = MaterialUsage.objects.filter(project=project).aggregate(
         total=Sum(ExpressionWrapper(
             F('quantity_used') * F('material__cost_per_unit'),
@@ -174,31 +167,45 @@ def admin_project_detail(request, project_id):
         ))
     )['total'] or Decimal('0.00')
 
-    # 2. Total Paid Invoices (Actual Cash Outflow)
-    # Using Payment model to get verified amounts paid by Accountant
     total_paid_cash = Payment.objects.filter(invoice__project=project).aggregate(
         total=Sum('paid_amount')
     )['total'] or Decimal('0.00')
 
-    # 3. Total Spent Calculation
     spent_budget = total_material_cost + total_paid_cash
-
-    # 4. Initial Budget (Since current budget is reducing, we calculate the start point)
     initial_budget = project.budget + spent_budget
+    budget_percent = round((float(spent_budget) / float(initial_budget)) * 100, 2) if initial_budget > 0 else 0
 
-    # 5. Budget Calculation for Progress Bar
-    budget_percent = 0
-    if initial_budget > 0:
-        budget_percent = round((float(spent_budget) / float(initial_budget)) * 100, 2)
+    site_logs = DailySiteLog.objects.filter(project=project).select_related('supervisor').order_by('-date')
+    reported_issues = Issue.objects.filter(project=project).select_related('reported_by', 'phase').order_by('-created_at')
+    material_usage = MaterialUsage.objects.filter(project=project).select_related('material', 'phase').order_by('-date')
+    invoices = Invoice.objects.filter(project=project).select_related('contractor__contractor', 'phase').order_by('-created_at')
 
     context = {
         'project': project,
         'spent_budget': spent_budget,
         'budget_percent': budget_percent,
-        'initial_budget': initial_budget, # Add this to context
+        'initial_budget': initial_budget,
         'total_material_cost': total_material_cost,
         'total_paid_cash': total_paid_cash,
-        'invoices': Invoice.objects.filter(project=project).select_related('contractor', 'phase'),
-        'material_usage': MaterialUsage.objects.filter(project=project).select_related('material', 'phase'),
+        'invoices': invoices,
+        'material_usage': material_usage,
+        'site_logs': site_logs, 
+        'reported_issues': reported_issues, 
     }
     return render(request, 'dashboard/admin/admin_proj_detail.html', context)
+
+@login_required
+@user_passes_test(is_admin)
+def admin_issue_detail(request, issue_id):
+    issue = get_object_or_404(Issue.objects.select_related('project', 'phase', 'reported_by'), id=issue_id)
+    return render(request, 'dashboard/admin/admin_issue_detail.html', {'issue': issue})
+
+@login_required
+@user_passes_test(is_admin)
+def admin_invoice_detail(request, invoice_id):
+    invoice = get_object_or_404(Invoice.objects.select_related('project', 'phase', 'contractor__contractor'), id=invoice_id)
+    payment = Payment.objects.filter(invoice=invoice).first()
+    return render(request, 'dashboard/admin/admin_invoice_detail.html', {
+        'invoice': invoice,
+        'payment': payment
+    })
