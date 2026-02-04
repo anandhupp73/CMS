@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from .models import Material, MaterialUsage
-from construction.models import Project
+from construction.models import *
 
 
 def can_manage_materials(user):
@@ -43,18 +43,29 @@ def material_bank(request):
 @user_passes_test(can_manage_materials)
 def project_material_usage(request, project_id):
     project = get_object_or_404(Project, id=project_id)
+    # Fetch all phases for this project to populate the dropdown
+    phases = project.phases.all() 
     materials = Material.objects.all()
-    usage_history = MaterialUsage.objects.filter(project=project).select_related('material').order_by('-date')
+    # Updated to include phase in the select_related for better performance
+    usage_history = MaterialUsage.objects.filter(project=project).select_related('material', 'phase').order_by('-date')
 
     if request.method == 'POST':
         mat_id = request.POST.get('material_id')
+        phase_id = request.POST.get('phase_id') # Capture the selected phase
         qty = float(request.POST.get('quantity'))
+        
         material = get_object_or_404(Material, id=mat_id)
+        phase = get_object_or_404(ProjectPhase, id=phase_id)
 
         if material.stock >= qty:
-            # MaterialUsage.save() automatically handles stock deduction
-            MaterialUsage.objects.create(project=project, material=material, quantity_used=qty)
-            messages.success(request, f"Logged {qty} {material.unit} of {material.name}")
+            # Create usage record linked to the specific phase
+            MaterialUsage.objects.create(
+                project=project, 
+                phase=phase, # Logic now tracks exactly which phase used the stock
+                material=material, 
+                quantity_used=qty
+            )
+            messages.success(request, f"Logged {qty} {material.unit} of {material.name} for {phase.phase_name}")
         else:
             messages.error(request, f"Insufficient stock for {material.name}!")
         
@@ -62,6 +73,7 @@ def project_material_usage(request, project_id):
 
     return render(request, 'materials/project_usage.html', {
         'project': project,
+        'phases': phases, # Pass phases to the template
         'materials': materials,
         'usage_history': usage_history
     })

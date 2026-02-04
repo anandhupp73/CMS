@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from .models import Labour, Attendance
-from construction.models import Project
+from construction.models import *
 
 def can_manage_labour(user):
     return user.role and user.role.name in ['Admin', 'Project Manager', 'Contractor']
@@ -30,32 +30,39 @@ def labour_list(request):
         
     return render(request, 'labour/labour_list.html', {'workers': workers})
 
-# 2. Project Attendance & Wage Tracking
 @login_required
 @user_passes_test(can_manage_labour)
 def project_attendance(request, project_id):
     project = get_object_or_404(Project, id=project_id)
+    # Fetch all phases for this project to populate the dropdown
+    phases = project.phases.all() 
     workers = Labour.objects.all()
-    # Fetching attendance records and using the model method to show wages
-    attendance_history = Attendance.objects.filter(project=project).select_related('labour').order_by('-date')
+    
+    # Updated to include phase in select_related for better performance
+    attendance_history = Attendance.objects.filter(project=project).select_related('labour', 'phase').order_by('-date')
 
     if request.method == 'POST':
         labour_id = request.POST.get('labour_id')
+        phase_id = request.POST.get('phase_id') # New field
         hours = int(request.POST.get('hours'))
         date = request.POST.get('date')
+        
         worker = get_object_or_404(Labour, id=labour_id)
+        phase = get_object_or_404(ProjectPhase, id=phase_id)
 
         Attendance.objects.create(
             project=project,
+            phase=phase, # Logic now tracks exactly which phase the worker was on
             labour=worker,
             hours_worked=hours,
             date=date
         )
-        messages.success(request, f"Attendance logged for {worker.name}")
+        messages.success(request, f"Attendance logged for {worker.name} on {phase.phase_name}")
         return redirect('labour:project_attendance', project_id=project.id)
 
     return render(request, 'labour/project_attendance.html', {
         'project': project,
+        'phases': phases, # Pass phases to the template
         'workers': workers,
         'attendance_history': attendance_history
     })

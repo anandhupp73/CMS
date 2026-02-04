@@ -19,20 +19,33 @@
                     <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-6">Log Consumption</h3>
                     <form method="POST" class="space-y-5">
                         {% csrf_token %}
+                        
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-2">Select Item</label>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-2 ml-1">Select Phase</label>
+                            <select name="phase_id" required class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-sm font-bold appearance-none">
+                                <option value="" disabled selected>Which phase is using this?</option>
+                                {% for phase in phases %}
+                                <option value="{{ phase.id }}">{{ phase.phase_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-2 ml-1">Select Item</label>
                             <select name="material_id" required class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-sm font-bold">
                                 {% for mat in materials %}
                                 <option value="{{ mat.id }}">{{ mat.name }} (Available: {{ mat.stock }} {{ mat.unit }})</option>
                                 {% endfor %}
                             </select>
                         </div>
+
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-2">Quantity Used</label>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-2 ml-1">Quantity Used</label>
                             <input type="number" step="0.01" name="quantity" required class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-sm font-bold">
                         </div>
+
                         <button type="submit" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-slate-200 hover:bg-emerald-600 transition-all">
-                            Update Project Stock
+                            Update Phase Stock
                         </button>
                     </form>
                 </div>
@@ -43,19 +56,24 @@
                     <div class="p-6 border-b border-slate-50">
                         <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest">Recent Activity</h3>
                     </div>
-                    <div class="max-h-[500px] overflow-y-auto">
+                    <div class="max-h-[600px] overflow-y-auto">
                         {% for log in usage_history %}
                         <div class="p-6 border-b border-slate-50 flex justify-between items-center hover:bg-slate-50 transition">
                             <div class="flex items-center gap-4">
                                 <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center">
-                                    <i class="fas fa-arrow-down text-xs"></i>
+                                    <i class="fas fa-layer-group text-xs"></i>
                                 </div>
                                 <div>
                                     <p class="text-sm font-bold text-slate-800">{{ log.material.name }}</p>
-                                    <p class="text-[10px] text-slate-400 uppercase font-bold">{{ log.date }}</p>
+                                    <p class="text-[10px] text-slate-400 uppercase font-bold tracking-tighter">
+                                        {{ log.date }} <span class="mx-1 text-slate-200">|</span> 
+                                        <span class="text-emerald-500">Phase: {{ log.phase.phase_name|default:"General" }}</span>
+                                    </p>
                                 </div>
                             </div>
-                            <p class="text-sm font-black text-red-500">-{{ log.quantity_used }} {{ log.material.unit }}</p>
+                            <div class="text-right">
+                                <p class="text-sm font-black text-red-500">-{{ log.quantity_used }} {{ log.material.unit }}</p>
+                            </div>
                         </div>
                         {% empty %}
                         <div class="p-20 text-center">

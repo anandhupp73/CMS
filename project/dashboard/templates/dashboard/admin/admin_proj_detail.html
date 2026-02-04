@@ -1,180 +1,136 @@
 {% extends "dashboard/admin/dashboard.html" %}
-
 {% block title %}Project Details{% endblock %}
-
 {% block content %}
-
-<!-- HEADER -->
-<div class="mb-8 flex justify-between items-start">
-    <div>
-        <h2 class="text-2xl font-bold text-slate-800 tracking-tight">
-            {{ project.name }}
-        </h2>
-        <p class="text-sm text-slate-500 mt-1">
-            Created on {{ project.created_at|date:"M d, Y" }}
-        </p>
+<div class="space-y-8 pb-12">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Initial Budget</p>
+            <p class="text-xl font-black text-slate-900">${{ initial_budget|floatformat:2 }}</p>
+        </div>
+        <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Remaining Balance</p>
+            <p class="text-xl font-black text-emerald-600">${{ project.budget|floatformat:2 }}</p>
+        </div>
+        <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Spent</p>
+            <p class="text-xl font-black text-indigo-600">${{ spent_budget|floatformat:2 }}</p>
+        </div>
+        <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Budget Usage</p>
+            <div class="flex items-center gap-2">
+                <p class="text-xl font-black text-slate-900">{{ budget_percent }}%</p>
+                <div class="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                    <div class="h-full {% if budget_percent > 90 %}bg-red-500{% else %}bg-indigo-500{% endif %}" 
+                        style="width: {{ budget_percent }}%"></div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <span class="px-3 py-1 rounded-full text-xs font-bold uppercase
-        {% if project.is_active %}
-            bg-emerald-100 text-emerald-700
-        {% else %}
-            bg-slate-200 text-slate-600
-        {% endif %}
-    ">
-        {% if project.is_active %}Active{% else %}Inactive{% endif %}
-    </span>
-</div>
-
-<!-- MAIN GRID -->
-<div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
-
-    <!-- LEFT COLUMN -->
-    <div class="xl:col-span-2 space-y-8">
-
-        <!-- BASIC INFO -->
-        <div class="bg-white border border-slate-200 rounded-3xl p-7 shadow-sm">
-            <h4 class="font-bold text-slate-800 mb-6">Project Information</h4>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
-                <div>
-                    <p class="text-slate-400 font-semibold">Project Manager</p>
-                    <p class="font-bold text-slate-800">
-                        {{ project.manager.get_full_name|default:project.manager.username }}
-                    </p>
-                </div>
-
-                <div>
-                    <p class="text-slate-400 font-semibold">Created By</p>
-                    <p class="font-bold text-slate-800">
-                        {{ project.created_by.get_full_name|default:"—" }}
-                    </p>
-                </div>
-
-                <div>
-                    <p class="text-slate-400 font-semibold">Start Date</p>
-                    <p class="font-bold text-slate-800">
-                        {{ project.start_date|date:"M d, Y" }}
-                    </p>
-                </div>
-
-                <div>
-                    <p class="text-slate-400 font-semibold">End Date</p>
-                    <p class="font-bold text-slate-800">
-                        {{ project.end_date|date:"M d, Y" }}
-                    </p>
-                </div>
-            </div>
-        </div>
-
-        <!-- PROGRESS -->
-        <div class="bg-white border border-slate-200 rounded-3xl p-7 shadow-sm">
-            <h4 class="font-bold text-slate-800 mb-6">Project Progress</h4>
-
-            <div class="flex justify-between text-xs font-bold uppercase text-slate-400 mb-2">
-                <span>Overall Progress</span>
-                <span>{{ project.total_progress }}%</span>
-            </div>
-
-            <div class="h-3 bg-slate-100 rounded-full overflow-hidden">
-                <div class="h-full bg-indigo-600"
-                     style="width: {{ project.total_progress }}%">
-                </div>
-            </div>
-        </div>
-
-        <!-- PHASES -->
-        <div class="bg-white border border-slate-200 rounded-3xl p-7 shadow-sm">
-            <h4 class="font-bold text-slate-800 mb-6">Project Phases</h4>
-
-            <div class="space-y-4">
-                {% for phase in project.phases.all %}
-                <div>
-                    <div class="flex justify-between text-xs font-bold text-slate-500 mb-1">
-                        <span>{{ phase.phase_name }}</span>
-                        <span>{{ phase.progress }}%</span>
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+        <div class="xl:col-span-2 space-y-8">
+            
+            <div class="bg-white border border-slate-200 rounded-[2.5rem] p-8 shadow-sm">
+                <h4 class="font-black text-slate-800 uppercase text-xs tracking-widest mb-6">Phase Timeline</h4>
+                <div class="space-y-6">
+                    {% for phase in project.phases.all %}
+                    <div class="relative pl-6 border-l-2 {% if phase.progress == 100 %}border-emerald-500{% else %}border-slate-200{% endif %}">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm font-bold text-slate-700">{{ phase.phase_name }}</span>
+                            <span class="text-xs font-black {% if phase.progress == 100 %}text-emerald-500{% else %}text-slate-400{% endif %}">{{ phase.progress }}%</span>
+                        </div>
+                        <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
+                            <div class="h-full {% if phase.progress == 100 %}bg-emerald-500{% else %}bg-indigo-500{% endif %}" style="width: {{ phase.progress }}%"></div>
+                        </div>
                     </div>
-                    <div class="h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                        <div class="h-full
-                            {% if phase.progress == 100 %}
-                                bg-emerald-500
-                            {% elif phase.progress > 0 %}
-                                bg-amber-500
-                            {% else %}
-                                bg-slate-400
-                            {% endif %}"
-                        style="width: {{ phase.progress }}%">
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="bg-white border border-slate-200 rounded-[2.5rem] p-8 shadow-sm overflow-hidden">
+                <h4 class="font-black text-slate-800 uppercase text-xs tracking-widest mb-6">Material Consumption</h4>
+                <table class="w-full text-left text-sm">
+                    <thead>
+                        <tr class="text-[10px] text-slate-400 uppercase font-black border-b border-slate-100">
+                            <th class="pb-4">Material</th>
+                            <th class="pb-4">Phase</th>
+                            <th class="pb-4 text-right">Quantity</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-50">
+                        {% for usage in material_usage %}
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="py-4 font-bold text-slate-700">{{ usage.material.name }}</td>
+                            <td class="py-4 text-slate-500">{{ usage.phase.phase_name|default:"General" }}</td>
+                            <td class="py-4 text-right font-mono text-red-500 font-bold">-{{ usage.quantity_used }} {{ usage.material.unit }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="space-y-8">
+            <div class="bg-white border border-slate-200 rounded-[2.5rem] p-8 shadow-sm">
+                <h4 class="font-black text-slate-800 uppercase text-xs tracking-widest mb-6">Site Personnel</h4>
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center text-[10px] font-black">PM</div>
+                        <div>
+                            <p class="text-xs font-black text-slate-800">{{ project.manager.get_full_name }}</p>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase">Project Manager</p>
+                        </div>
+                    </div>
+                    <hr class="border-slate-50">
+                    <div class="space-y-6">
+                        <div>
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Supervisors</p>
+                            <div class="space-y-3">
+                                {% for ps in project.projectsupervisor_set.all %}
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center text-[10px] font-black">S</div>
+                                    <p class="text-xs font-bold text-slate-700">{{ ps.supervisor.get_full_name|default:ps.supervisor.username }}</p>
+                                </div>
+                                {% empty %}
+                                <p class="text-xs text-slate-400 italic pl-1">No supervisors assigned</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <hr class="border-slate-50">
+
+                        <div>
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Contractors</p>
+                            <div class="space-y-3">
+                                {% for pc in project.projectcontractor_set.all %}
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center text-[10px] font-black">C</div>
+                                    <p class="text-xs font-bold text-slate-700">{{ pc.contractor.get_full_name|default:pc.contractor.username }}</p>
+                                </div>
+                                {% empty %}
+                                <p class="text-xs text-slate-400 italic pl-1">No contractors assigned</p>
+                                {% endfor %}
+                            </div>
                         </div>
                     </div>
                 </div>
-                {% empty %}
-                <p class="text-sm text-slate-400">No phases added.</p>
-                {% endfor %}
             </div>
-        </div>
 
-    </div>
-
-    <!-- RIGHT COLUMN -->
-    <div class="space-y-8">
-
-        <!-- BUDGET -->
-        <div class="bg-white border border-slate-200 rounded-3xl p-7 shadow-sm">
-            <h4 class="font-bold text-slate-800 mb-6">Budget Overview</h4>
-
-            <div class="space-y-4 text-sm">
-                <div class="flex justify-between">
-                    <span class="text-slate-400 font-semibold">Total Budget</span>
-                    <span class="font-bold">${{ project.budget|floatformat:2 }}</span>
-                </div>
-
-                <div class="flex justify-between">
-                    <span class="text-slate-400 font-semibold">Spent</span>
-                    <span class="font-bold">${{ spent_budget|floatformat:2 }}</span>
-                </div>
-
-                <div class="flex justify-between">
-                    <span class="text-slate-400 font-semibold">Usage</span>
-                    <span class="font-bold">{{ budget_percent }}%</span>
-                </div>
-
-                <div class="h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                    <div class="h-full bg-emerald-600" style="width: {{ budget_percent }}%"></div>
+            <div class="bg-white border border-slate-200 rounded-[2.5rem] p-8 shadow-sm">
+                <h4 class="font-black text-slate-800 uppercase text-xs tracking-widest mb-6">Invoices</h4>
+                <div class="space-y-4">
+                    {% for inv in invoices %}
+                    <div class="flex justify-between items-center p-3 rounded-2xl hover:bg-slate-50 transition border border-transparent hover:border-slate-100">
+                        <div>
+                            <p class="text-xs font-bold text-slate-800">${{ inv.amount }}</p>
+                            <p class="text-[9px] text-slate-400 font-bold uppercase">{{ inv.status }} • {{ inv.phase.phase_name|slice:":10" }}</p>
+                        </div>
+                        <span class="w-2 h-2 rounded-full {% if inv.status == 'PAID' %}bg-emerald-500{% elif inv.status == 'APPROVED' %}bg-blue-500{% else %}bg-amber-500{% endif %}"></span>
+                    </div>
+                    {% endfor %}
                 </div>
             </div>
         </div>
-
-        <!-- SUPERVISORS -->
-        <div class="bg-white border border-slate-200 rounded-3xl p-7 shadow-sm">
-            <h4 class="font-bold text-slate-800 mb-6">Assigned Supervisors</h4>
-
-            <ul class="space-y-2 text-sm">
-                {% for ps in project.projectsupervisor_set.all %}
-                <li class="font-semibold text-slate-700">
-                    {{ ps.supervisor.get_full_name|default:ps.supervisor.username }}
-                </li>
-                {% empty %}
-                <li class="text-slate-400">No supervisors assigned.</li>
-                {% endfor %}
-            </ul>
-        </div>
-
-        <!-- CONTRACTORS -->
-        <div class="bg-white border border-slate-200 rounded-3xl p-7 shadow-sm">
-            <h4 class="font-bold text-slate-800 mb-6">Assigned Contractors</h4>
-
-            <ul class="space-y-2 text-sm">
-                {% for pc in project.projectcontractor_set.all %}
-                <li class="font-semibold text-slate-700">
-                    {{ pc.contractor.get_full_name|default:pc.contractor.username }}
-                </li>
-                {% empty %}
-                <li class="text-slate-400">No contractors assigned.</li>
-                {% endfor %}
-            </ul>
-        </div>
-
     </div>
 </div>
-
 {% endblock %}

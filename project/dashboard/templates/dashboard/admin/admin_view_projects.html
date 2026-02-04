@@ -60,14 +60,17 @@
             <div class="flex justify-between text-xs font-bold mb-1 uppercase tracking-tighter text-slate-500">
                 <span>Budget Usage</span>
                 <span class="text-slate-900">
-                    ${{ project.spent_budget|floatformat:0 }} / {{ project.budget }}
+                    ${{ project.spent_budget|floatformat:0 }} / ${{ project.initial_total|floatformat:0 }}
                 </span>
             </div>
             <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                <div class="h-full bg-emerald-500"
-                     style="width: {{ project.budget_percent }}%;">
+                <div class="h-full {% if project.budget_percent > 90 %}bg-red-500{% else %}bg-emerald-500{% endif %}"
+                    style="width: {{ project.budget_percent }}%;">
                 </div>
             </div>
+            <p class="text-[9px] text-slate-400 mt-1 font-bold">
+                REMAINING: ${{ project.budget|floatformat:2 }}
+            </p>
         </div>
 
         <!-- Project Phases -->

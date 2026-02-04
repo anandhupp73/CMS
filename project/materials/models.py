@@ -1,5 +1,5 @@
 from django.db import models
-from construction.models import Project
+from construction.models import *
 from django.db.models import Sum
 
 class Material(models.Model):
@@ -20,12 +20,21 @@ class Material(models.Model):
     
 class MaterialUsage(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    # NEW: Link usage to a specific phase
+    phase = models.ForeignKey(
+        ProjectPhase, 
+        on_delete=models.CASCADE, 
+        related_name='material_logs',
+        null=True, # Allows existing logs to remain valid
+        blank=True
+    )
     material = models.ForeignKey(Material, on_delete=models.CASCADE)
     quantity_used = models.FloatField()
     date = models.DateField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
-        if not self.pk:  # only on first save
+        if not self.pk:
+            # When saving, deduct from the main Material bank
             self.material.stock -= self.quantity_used
             self.material.save()
         super().save(*args, **kwargs)
