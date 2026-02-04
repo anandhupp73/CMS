@@ -47,6 +47,8 @@
 
     <main class="flex-1 pt-24 pb-12 px-6 max-w-7xl mx-auto w-full">
     
+    {% block content %}
+    
     <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
         <div>
             <h1 class="text-4xl font-black text-slate-800 tracking-tighter">Contractor Dashboard</h1>
@@ -137,6 +139,7 @@
             {% endfor %}
         </div>
         </div>
+        {% endblock %}
 </main>
 
 </body>

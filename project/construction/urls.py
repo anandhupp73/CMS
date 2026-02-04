@@ -17,8 +17,7 @@ urlpatterns = [
     path('supervisor_dashboard/', views.supervisor_dashboard, name='supervisor_dashboard'),
     path('report-issue/<int:phase_id>/',views.report_issue,name='report_issue'),
     path('pm-issues/',views.pm_issues,name='pm_issues'),
-
-    
+    path('daily-log/submit/', views.submit_daily_log, name='submit_daily_log'),
 
 
 ]

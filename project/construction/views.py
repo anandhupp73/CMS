@@ -23,10 +23,25 @@ def is_pm_or_sup(user):
 
 
 
+from decimal import Decimal
+from django.db.models import Sum, F, ExpressionWrapper, DecimalField, Subquery, OuterRef
+from finance.models import Payment # Ensure these are imported
+from materials.models import MaterialUsage
+
 @login_required
+@user_passes_test(is_pm)
 def home(request):
-    projets = Project.objects.filter(manager=request.user).prefetch_related('phases')
-    return render(request, 'construction/pm_dashboard.html', {'projects': projets})
+    
+    projects = Project.objects.filter(manager=request.user).annotate(
+        total_spent=Subquery(
+            Payment.objects.filter(invoice__project=OuterRef('pk'))
+            .values('invoice__project')
+            .annotate(sum=Sum('paid_amount'))
+            .values('sum')
+        )
+    ).prefetch_related('phases')
+
+    return render(request, 'construction/pm_dashboard.html', {'projects': projects})
 
 @login_required
 @user_passes_test(is_admin)
@@ -142,14 +157,40 @@ def update_progress(request, project_id):
 
 @login_required
 def project_detail(request, project_id):
-    project = Project.objects.get(id=project_id)
+    project = get_object_or_404(Project, id=project_id)
     phases = project.phases.all()
-    supervisors = ProjectSupervisor.objects.filter(project=project)
+    supervisors = ProjectSupervisor.objects.filter(project=project).select_related('supervisor')
+    
+    # NEW: Fetch Contractors
+    contractors = ProjectContractor.objects.filter(project=project).select_related('contractor')
+    
+    # NEW: Financial Calculations for the Header Cards
+    # 1. Total Cash Actually Paid
+    total_paid_cash = Payment.objects.filter(
+        invoice__project=project
+    ).aggregate(total=Sum('paid_amount'))['total'] or Decimal('0.00')
+
+    # 2. Total Material Value Consumed
+    total_material_cost = MaterialUsage.objects.filter(
+        project=project
+    ).aggregate(
+        total=Sum(ExpressionWrapper(
+            F('quantity_used') * F('material__cost_per_unit'),
+            output_field=DecimalField(max_digits=15, decimal_places=2)
+        ))
+    )['total'] or Decimal('0.00')
+
+    # 3. Reconstruct the Initial Budget (Since we subtract from 'budget' field directly)
+    original_total = project.budget + total_paid_cash + total_material_cost
 
     return render(request, 'construction/project_detail.html', {
         'project': project,
         'phases': phases,
         'supervisors': supervisors,
+        'contractors': contractors,
+        'total_paid_cash': total_paid_cash,
+        'total_material_cost': total_material_cost,
+        'original_total': original_total,
     })
 
 @login_required
@@ -223,17 +264,51 @@ def supervisors_list(request):
     })
 
 @login_required
+@user_passes_test(is_sup)
 def supervisor_dashboard(request):
-    user = request.user
+    assigned_projects = Project.objects.filter(projectsupervisor__supervisor=request.user)
+    
+    assigned_phases = ProjectPhase.objects.filter(project__in=assigned_projects).select_related('project')
 
-    assigned_phases = ProjectPhase.objects.filter(
-        project__projectsupervisor__supervisor=user
-    ).select_related('project')
+    recent_logs = DailySiteLog.objects.filter(supervisor=request.user).order_by('-date')[:5]
 
     return render(request, 'construction/supervisor_dashboard.html', {
-        'assigned_phases': assigned_phases
+        'assigned_projects': assigned_projects,
+        'assigned_phases': assigned_phases,
+        'recent_logs': recent_logs
     })
 
+@login_required
+@user_passes_test(is_sup)
+def submit_daily_log(request):
+    # CRITICAL: We must fetch these so the sidebar/navbar links don't crash
+    assigned_projects = Project.objects.filter(projectsupervisor__supervisor=request.user)
+    
+    # This is what line 118 in your dashboard template is looking for!
+    assigned_phases = ProjectPhase.objects.filter(project__in=assigned_projects).select_related('project')
+
+    if request.method == 'POST':
+        project_id = request.POST.get('project')
+        work_done = request.POST.get('work_done')
+        weather = request.POST.get('weather_condition')
+        photo = request.FILES.get('photo')
+
+        DailySiteLog.objects.create(
+            project_id=project_id,
+            supervisor=request.user,
+            work_done=work_done,
+            weather_condition=weather,
+            photo=photo
+        )
+        messages.success(request, "Daily Journal updated successfully.")
+        return redirect('construction:supervisor_dashboard')
+
+    return render(request, 'construction/submit_daily_log.html', {
+        'projects': assigned_projects,      
+        'assigned_projects': assigned_projects, 
+        'assigned_phases': assigned_phases      
+    })
+    
 @login_required
 @user_passes_test(is_sup)
 def report_issue(request, phase_id):
@@ -281,3 +356,4 @@ def assign_contractor(request, project_id):
         'project':project,
         'contractors':contractors
     })
+    

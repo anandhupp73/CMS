@@ -82,6 +82,7 @@ class ProjectSupervisor(models.Model):
     class Meta:
         unique_together = ('project', 'supervisor')
 
+#for sup
 class Issue(models.Model):
     ISSUE_TYPES = [
         ('material', 'Material Delay'),
@@ -101,3 +102,16 @@ class Issue(models.Model):
 
     def __str__(self):
         return f"{self.project.name} - {self.issue_type}"
+
+
+#for sup
+class DailySiteLog(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    supervisor = models.ForeignKey(User, on_delete=models.CASCADE)
+    date = models.DateField(auto_now_add=True)
+    work_done = models.TextField(help_text="What was achieved today?")
+    weather_condition = models.CharField(max_length=50, blank=True)
+    photo = models.ImageField(upload_to='site_logs/', null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.project.name} - {self.date}"

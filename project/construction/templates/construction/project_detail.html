@@ -2,184 +2,182 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>{{ project.name }} | Project Details</title>
+    <title>{{ project.name }} | Project Intelligence</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 
-<body class="bg-slate-100 min-h-screen">
+<body class="bg-slate-50 min-h-screen pb-20">
 
-<div class="max-w-7xl mx-auto px-6 py-8">
+<div class="max-w-7xl mx-auto px-6 pt-10">
 
-    <!-- ================= HEADER ================= -->
-    <div class="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-8">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
         <div>
-            <h1 class="text-3xl font-extrabold text-slate-800">
-                {{ project.name }}
-            </h1>
-            <p class="text-sm text-slate-500 mt-1">
-                {{ project.start_date }} → {{ project.end_date }}
-            </p>
+            <div class="flex items-center gap-3 mb-2">
+                <span class="px-3 py-1 bg-indigo-100 text-indigo-700 text-[10px] font-black uppercase rounded-full tracking-widest">
+                    Project ID: #00{{ project.id }}
+                </span>
+                <span class="w-2 h-2 rounded-full {% if project.is_active %}bg-emerald-500 animate-pulse{% else %}bg-slate-300{% endif %}"></span>
+            </div>
+            <h1 class="text-4xl font-black text-slate-900 tracking-tighter">{{ project.name }}</h1>
         </div>
 
-        <div class="flex gap-3">
-            <a href="{% url 'construction:add_phase' project.id %}"
-               class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700">
-                + Add Phase
+        <div class="flex flex-wrap gap-3">
+            <a href="{% url 'construction:add_phase' project.id %}" class="bg-white border border-slate-200 text-slate-700 px-5 py-2.5 rounded-2xl text-xs font-bold shadow-sm hover:bg-slate-50 transition-all flex items-center gap-2">
+                <i class="fas fa-layer-group text-slate-400"></i> Add Phase
             </a>
-
-            <a href="{% url 'construction:assign_supervisor' project.id %}"
-               class="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-semibold hover:bg-emerald-700">
-                + Assign Supervisor
+            <a href="{% url 'construction:assign_contractor' project.id %}" class="bg-white border border-slate-200 text-slate-700 px-5 py-2.5 rounded-2xl text-xs font-bold shadow-sm hover:bg-slate-50 transition-all flex items-center gap-2">
+                <i class="fas fa-hard-hat text-slate-400"></i> Assign Contractor
             </a>
-
-            <a href="{% url 'construction:construction_home' %}"
-               class="px-4 py-2 bg-yellow-700 text-white rounded-lg text-sm font-semibold hover:bg-yellow-700">
-                Back
+            <a href="{% url 'construction:assign_supervisor' project.id %}" class="bg-white border border-slate-200 text-slate-700 px-5 py-2.5 rounded-2xl text-xs font-bold shadow-sm hover:bg-slate-50 transition-all flex items-center gap-2">
+                <i class="fas fa-user-shield text-slate-400"></i> Assign Supervisor
+            </a>
+            <a href="{% url 'construction:construction_home' %}" class="bg-slate-900 text-white px-6 py-2.5 rounded-2xl text-xs font-bold shadow-lg shadow-slate-200 transition-all">
+                Back to Dashboard
             </a>
         </div>
     </div>
 
-    <!-- ================= PROJECT SUMMARY ================= -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
-        <div class="bg-white p-6 rounded-xl shadow">
-            <p class="text-xs uppercase text-slate-400 font-bold">Budget</p>
-            <p class="text-2xl font-bold text-emerald-600 mt-1">
-                ₹ {{ project.budget }}
-            </p>
-        </div>
-
-        <div class="bg-white p-6 rounded-xl shadow">
-            <p class="text-xs uppercase text-slate-400 font-bold">Project Manager</p>
-            <p class="text-lg font-semibold mt-1">
-                {{ project.manager.username }}
-            </p>
-        </div>
-
-        <div class="bg-white p-6 rounded-xl shadow">
-            <p class="text-xs uppercase text-slate-400 font-bold">Status</p>
-            <span class="inline-block mt-2 px-3 py-1 rounded-full text-xs font-bold
-                {% if project.is_active %}
-                    bg-green-100 text-green-700
-                {% else %}
-                    bg-red-100 text-red-700
-                {% endif %}
-            ">
-                {% if project.is_active %} Active {% else %} Inactive {% endif %}
-            </span>
-        </div>
-
-        <div class="bg-white p-6 rounded-xl shadow">
-            <p class="text-xs uppercase text-slate-400 font-bold">Total Phases</p>
-            <p class="text-2xl font-bold mt-1">
-                {{ project.phases.count }}
-            </p>
-        </div>
-    </div>
-
-    <!-- ================= PHASE TABLE ================= -->
-    <div class="bg-white rounded-xl shadow mb-10">
-        <div class="px-6 py-4 border-b">
-            <h2 class="text-lg font-bold text-slate-800">
-                Project Phases
-            </h2>
-        </div>
-
-        <div class="overflow-x-auto">
-            <table class="w-full text-sm">
-                <thead class="bg-slate-50 text-xs uppercase text-slate-500 font-bold">
-                    <tr>
-                        <th class="px-6 py-3 text-left">Phase</th>
-                        <th class="px-6 py-3 text-center">Expected End</th>
-                        <th class="px-6 py-3 text-center">Actual End</th>
-                        <th class="px-6 py-3 text-center">Progress</th>
-                        <th class="px-6 py-3 text-center">Status</th>
-                        <th class="px-6 py-3 text-center">Action</th>
-                    </tr>
-                </thead>
-
-                <tbody class="divide-y">
-                    {% for phase in phases %}
-                    <tr class="hover:bg-slate-50">
-                        <td class="px-6 py-4 font-semibold">
-                            {{ phase.phase_name }}
-                        </td>
-
-                        <td class="px-6 py-4 text-center">
-                            {{ phase.expected_end }}
-                        </td>
-
-                        <td class="px-6 py-4 text-center">
-                            {{ phase.actual_end|default:"—" }}
-                        </td>
-
-                        <td class="px-6 py-4 text-center font-bold">
-                            {{ phase.progress }}%
-                        </td>
-
-                        <!-- STATUS -->
-                        <td class="px-6 py-4 text-center">
-                            {% if phase.actual_end and phase.actual_end > phase.expected_end %}
-                                <span class="px-3 py-1 rounded-full bg-red-100 text-red-700 text-xs font-bold">
-                                    Delayed
-                                </span>
-                            {% elif phase.progress == 100 %}
-                                <span class="px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-bold">
-                                    Completed
-                                </span>
-                            {% else %}
-                                <span class="px-3 py-1 rounded-full bg-yellow-100 text-yellow-700 text-xs font-bold">
-                                    In Progress
-                                </span>
-                            {% endif %}
-                        </td>
-
-                        <td class="px-6 py-4 text-center">
-                            <a href="{% url 'construction:update_phase' phase.id %}"
-                               class="text-indigo-600 font-bold hover:underline">
-                                Update
-                            </a>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="6" class="px-6 py-6 text-center text-slate-400">
-                            No phases added yet.
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- ================= SUPERVISORS ================= -->
-    <div class="bg-white rounded-xl shadow">
-        <div class="px-6 py-4 border-b">
-            <h2 class="text-lg font-bold text-slate-800">
-                Assigned Supervisors
-            </h2>
-        </div>
-
-        <ul class="divide-y">
-            {% for ps in supervisors %}
-            <li class="px-6 py-4 flex justify-between items-center">
-                <div>
-                    <p class="font-semibold text-slate-800">
-                        {{ ps.supervisor.username }}
-                    </p>
-                    <p class="text-xs text-slate-400">
-                        Assigned on {{ ps.assigned_at|date:"d M Y" }}
-                    </p>
+        <div class="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm relative overflow-hidden group">
+            <div class="relative z-10">
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Total Completion</p>
+                <p class="text-4xl font-black text-slate-900">{{ project.total_progress }}%</p>
+                <div class="mt-4 h-2 bg-slate-100 rounded-full overflow-hidden">
+                    <div class="h-full bg-indigo-600 transition-all duration-1000" style="width: {{ project.total_progress }}%"></div>
                 </div>
-            </li>
-            {% empty %}
-            <li class="px-6 py-6 text-center text-slate-400">
-                No supervisors assigned yet.
-            </li>
-            {% endfor %}
-        </ul>
+            </div>
+            <i class="fas fa-chart-line absolute -bottom-4 -right-4 text-8xl text-slate-50 opacity-10 group-hover:scale-110 transition-transform"></i>
+        </div>
+
+        <div class="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Remaining Funds</p>
+            <p class="text-3xl font-black text-emerald-600">₹ {{ project.budget|floatformat:2 }}</p>
+            <p class="text-[10px] text-slate-400 mt-2 font-bold">OUT OF ₹ {{ original_total|default:project.budget }}</p>
+        </div>
+
+        <div class="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Resource Value</p>
+            <p class="text-3xl font-black text-orange-500">₹ {{ total_material_cost|default:"0.00" }}</p>
+            <p class="text-[10px] text-slate-400 mt-2 font-bold uppercase">Consumed on site</p>
+        </div>
+
+        <div class="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Labour Paid</p>
+            <p class="text-3xl font-black text-blue-600">₹ {{ total_paid_cash|default:"0.00" }}</p>
+            <p class="text-[10px] text-slate-400 mt-2 font-bold uppercase">Via Contractor Invoices</p>
+        </div>
     </div>
 
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-10">
+        
+        <div class="xl:col-span-2 space-y-8">
+            <div class="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden">
+                <div class="px-8 py-6 border-b border-slate-50 bg-white">
+                    <h2 class="text-xs font-black text-slate-800 uppercase tracking-widest">Execution Timeline</h2>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead class="bg-slate-50/50 text-[10px] uppercase text-slate-400 font-black tracking-widest">
+                            <tr>
+                                <th class="px-8 py-4 text-left">Phase Name</th>
+                                <th class="px-8 py-4 text-center">Schedule</th>
+                                <th class="px-8 py-4 text-center">Progress</th>
+                                <th class="px-8 py-4 text-center">Health</th>
+                                <th class="px-8 py-4 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-50">
+                            {% for phase in phases %}
+                            <tr class="hover:bg-slate-50/80 transition-colors">
+                                <td class="px-8 py-6">
+                                    <p class="font-bold text-slate-700">{{ phase.phase_name }}</p>
+                                    <p class="text-[10px] text-slate-400 font-medium">Assigned Milestone</p>
+                                </td>
+                                <td class="px-8 py-6 text-center">
+                                    <p class="text-xs font-bold text-slate-600">{{ phase.expected_end|date:"d M Y" }}</p>
+                                    <p class="text-[9px] text-slate-400 uppercase font-black">Expected</p>
+                                </td>
+                                <td class="px-8 py-6 text-center">
+                                    <div class="flex flex-col items-center gap-2">
+                                        <span class="text-xs font-black text-slate-900">{{ phase.progress }}%</span>
+                                        <div class="w-16 h-1 bg-slate-100 rounded-full overflow-hidden">
+                                            <div class="h-full bg-indigo-600" style="width: {{ phase.progress }}%"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-8 py-6 text-center">
+                                    {% if phase.is_delayed %}
+                                        <span class="px-3 py-1 rounded-full bg-red-50 text-red-600 text-[10px] font-black uppercase">Critical Delay</span>
+                                    {% elif phase.progress == 100 %}
+                                        <span class="px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase">Cleared</span>
+                                    {% else %}
+                                        <span class="px-3 py-1 rounded-full bg-indigo-50 text-indigo-600 text-[10px] font-black uppercase">On Track</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-8 py-6 text-right">
+                                    <a href="{% url 'construction:update_phase' phase.id %}" class="inline-flex items-center gap-2 text-[10px] font-black text-slate-900 bg-slate-100 px-4 py-2 rounded-xl hover:bg-slate-200 transition-all uppercase tracking-widest">
+                                        Update
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="px-8 py-20 text-center text-slate-300 font-bold uppercase text-xs tracking-widest">No active phases found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-8">
+            <div class="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm p-8">
+                <h2 class="text-xs font-black text-slate-800 uppercase tracking-widest mb-8">Site Personnel</h2>
+                
+                <div class="space-y-6">
+                    <div>
+                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Supervisors</p>
+                        <div class="space-y-4">
+                            {% for ps in supervisors %}
+                            <div class="flex items-center justify-between group">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center text-xs font-black">S</div>
+                                    <div>
+                                        <p class="text-xs font-bold text-slate-800">{{ ps.supervisor.username }}</p>
+                                        <p class="text-[9px] text-slate-400 font-medium">Joined {{ ps.assigned_at|date:"M Y" }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <p class="text-xs text-slate-400 italic">None assigned</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <hr class="border-slate-50">
+
+                    <div>
+                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Primary Contractors</p>
+                        <div class="space-y-4">
+                            {% for pc in contractors %}
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-xs font-black">C</div>
+                                <div>
+                                    <p class="text-xs font-bold text-slate-800">{{ pc.contractor.get_full_name|default:pc.contractor.username }}</p>
+                                    <p class="text-[9px] text-emerald-500 font-black uppercase tracking-tighter">Verified Contractor</p>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <p class="text-xs text-slate-400 italic">None assigned</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 </body>

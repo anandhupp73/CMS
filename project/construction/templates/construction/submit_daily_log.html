@@ -1,0 +1,61 @@
+{% extends "construction/supervisor_dashboard.html" %}
+
+{% block content %}
+<main class="max-w-2xl mx-auto p-6">
+    <a href="{% url 'construction:supervisor_dashboard' %}" class="inline-flex items-center text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 mb-8 transition-colors">
+        <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
+    </a>
+
+    <div class="bg-white rounded-[2.5rem] p-10 border border-slate-200 shadow-sm">
+        <div class="flex items-center gap-4 mb-8">
+            <div class="w-12 h-12 bg-orange-100 text-orange-600 rounded-2xl flex items-center justify-center">
+                <i class="fas fa-journal-whills text-xl"></i>
+            </div>
+            <div>
+                <h2 class="text-2xl font-black text-slate-800 tracking-tighter">Daily Site Journal</h2>
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Record today's achievements & conditions</p>
+            </div>
+        </div>
+
+        <form method="POST" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+
+            <div>
+                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Active Project</label>
+                <select name="project" required class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-sm outline-none focus:ring-4 focus:ring-orange-500/10">
+                    {% for proj in projects %}
+                        <option value="{{ proj.id }}">{{ proj.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Weather Condition</label>
+                <input type="text" name="weather_condition" placeholder="e.g. Sunny, Heavy Rain, Dusty" 
+                       class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-medium outline-none">
+            </div>
+
+            <div>
+                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Work Achievements</label>
+                <textarea name="work_done" rows="4" required placeholder="Describe what milestones were hit today..."
+                          class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-medium outline-none"></textarea>
+            </div>
+
+            <div>
+                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Site Photo (Evidence)</label>
+                <div class="relative group">
+                    <input type="file" name="photo" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+                    <div class="w-full p-8 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center bg-slate-50 group-hover:bg-slate-100 transition-all">
+                        <i class="fas fa-camera text-slate-300 text-2xl mb-2"></i>
+                        <p class="text-[10px] font-black text-slate-400 uppercase">Click to capture or upload</p>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="w-full bg-orange-500 text-white font-black py-5 rounded-2xl uppercase tracking-[0.2em] text-[10px] shadow-xl shadow-orange-100 hover:bg-slate-900 transition-all active:scale-95">
+                Save Daily Entry
+            </button>
+        </form>
+    </div>
+</main>
+{% endblock %}

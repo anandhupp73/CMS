@@ -25,7 +25,7 @@ def home(request):
 @login_required
 @user_passes_test(is_acc)
 def record_payment(request, invoice_id):
-    invoice = get_object_or_404(Invoice, id=invoice_id)
+    invoice = get_object_or_404(Invoice, id=invoice_id, status='APPROVED')
     project = invoice.project
 
     if request.method == 'POST':
