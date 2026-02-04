@@ -31,28 +31,28 @@
     </nav>
 
     <main class="max-w-xl mx-auto pt-28 pb-12 px-6">
-        <a href="{% url 'contractors:contractors_home' %}" class="inline-flex items-center text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 mb-8 transition-colors">
-            <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
-        </a>
+    <a href="{% url 'contractors:contractors_home' %}" class="inline-flex items-center text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 mb-8 transition-colors">
+        <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
+    </a>
 
-        <div class="bg-white rounded-[2.5rem] p-10 border border-slate-200 shadow-sm">
-    <div class="flex justify-between items-start mb-8">
-        <div>
-            <h2 class="text-3xl font-black text-slate-800 tracking-tighter">Phase Billing</h2>
-            <p class="text-slate-400 text-xs font-medium uppercase tracking-widest">Labor and materials are automatically compiled.</p>
-        </div>
-        <div class="bg-indigo-50 text-indigo-600 p-4 rounded-2xl text-center">
-            <i class="fas fa-calculator block mb-1"></i>
-            <span class="text-[9px] font-black uppercase">Auto-Calculate</span>
-        </div>
+    <div class="bg-white rounded-[2.5rem] p-10 border border-slate-200 shadow-sm">
+        <div class="flex justify-between items-start mb-8">
+            <div>
+                <h2 class="text-3xl font-black text-slate-800 tracking-tighter">Period Billing</h2>
+                <p class="text-slate-400 text-xs font-medium uppercase tracking-widest">Select dates to pull work logs.</p>
+            </div>
+            <div class="bg-indigo-50 text-indigo-600 p-4 rounded-2xl text-center">
+                <i class="fas fa-calculator block mb-1"></i>
+                <span class="text-[9px] font-black uppercase">Live Sync</span>
+            </div>
         </div>
 
         <form method="POST" class="space-y-6">
             {% csrf_token %}
 
             <div>
-                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Select Milestone</label>
-                <select name="phase" id="phaseSelect" required class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-sm outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all">
+                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Project Milestone</label>
+                <select name="phase" id="phaseSelect" required class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-sm outline-none focus:ring-4 focus:ring-indigo-500/10">
                     <option value="" disabled selected>Choose a phase...</option>
                     {% for phase in phases %}
                         <option value="{{ phase.id }}">{{ phase.project.name }} &mdash; {{ phase.phase_name }}</option>
@@ -60,42 +60,82 @@
                 </select>
             </div>
 
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Start Date</label>
+                    <input type="date" name="start_date" id="startDate" required class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none text-sm font-bold">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">End Date</label>
+                    <input type="date" name="end_date" id="endDate" required class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none text-sm font-bold">
+                </div>
+            </div>
+
             <div class="bg-slate-900 rounded-3xl p-6 text-white space-y-4 shadow-xl shadow-slate-200">
                 <h4 class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Live Breakdown</h4>
                 
                 <div class="flex justify-between items-center text-sm">
                     <span class="text-slate-400 font-medium">Material Value</span>
-                    <span class="font-mono font-bold" id="matValue">$0.00</span>
+                    <span class="font-mono font-bold text-emerald-400" id="matValue">$0.00</span>
                 </div>
                 <div class="flex justify-between items-center text-sm">
                     <span class="text-slate-400 font-medium">Labor Attendance</span>
-                    <span class="font-mono font-bold" id="labValue">$0.00</span>
+                    <span class="font-mono font-bold text-blue-400" id="labValue">$0.00</span>
                 </div>
                 
                 <hr class="border-slate-800">
                 
                 <div class="space-y-2">
-                    <label class="block text-[10px] font-black text-indigo-400 uppercase tracking-widest">Your Service Fee / Extra Costs</label>
+                    <label class="block text-[10px] font-black text-indigo-400 uppercase tracking-widest">Extra Service Fee / Manual Labour</label>
                     <div class="relative">
                         <span class="absolute left-0 top-1/2 -translate-y-1/2 text-white font-bold">$</span>
-                        <input type="number" step="0.01" name="extra_costs" value="0.00" 
-                            class="bg-transparent border-b border-slate-700 w-full py-2 pl-4 text-xl font-black outline-none focus:border-indigo-500 transition-colors">
+                        <input type="number" step="0.01" name="extra_costs" id="extraCosts" value="0.00" 
+                            class="bg-transparent border-b border-slate-700 w-full py-2 pl-4 text-xl font-black outline-none focus:border-indigo-500">
                     </div>
                 </div>
             </div>
 
             <div>
                 <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Work Narrative</label>
-                <textarea name="description" rows="3" placeholder="Briefly explain the progress made during this phase..." required
+                <textarea name="description" rows="3" placeholder="Explain the progress for this period..." required
                         class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-medium text-sm"></textarea>
             </div>
 
             <button type="submit" class="w-full bg-indigo-600 text-white font-black py-5 rounded-2xl uppercase tracking-[0.2em] text-[10px] shadow-xl shadow-indigo-200 hover:bg-slate-900 transition-all active:scale-95">
-                Submit Complete Phase Invoice
+                Submit Period Invoice
             </button>
         </form>
     </div>
-    </main>
+</main>
+
+<script>
+    const phaseSelect = document.getElementById('phaseSelect');
+    const startDate = document.getElementById('startDate');
+    const endDate = document.getElementById('endDate');
+    const matDisplay = document.getElementById('matValue');
+    const labDisplay = document.getElementById('labValue');
+
+    async function updateCosts() {
+        const phaseId = phaseSelect.value;
+        const start = startDate.value;
+        const end = endDate.value;
+
+        if (!phaseId || !start || !end) return;
+
+        try {
+            const response = await fetch(`/contractors/api/get-phase-costs/?phase_id=${phaseId}&start=${start}&end=${end}`);
+            const data = await response.json();
+            
+            matDisplay.textContent = `$${data.mat_cost.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+            labDisplay.textContent = `$${data.lab_cost.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+        } catch (error) {
+            console.error("Fetch error:", error);
+        }
+    }
+
+    // Trigger update whenever inputs change
+    [phaseSelect, startDate, endDate].forEach(el => el.addEventListener('change', updateCosts));
+</script>
 
 </body>
 </html>

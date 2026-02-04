@@ -26,63 +26,56 @@ def home(request):
     }
     return render(request, 'contractors/contrac_dashboard.html', context)
 
-
 @login_required
 @user_passes_test(is_contractor)
 def submit_invoice(request):
-    # Fetch projects assigned to this contractor
     assignments = ProjectContractor.objects.filter(contractor=request.user)
     project_ids = assignments.values_list('project_id', flat=True)
     phases = ProjectPhase.objects.filter(project_id__in=project_ids).select_related('project')
 
     if request.method == 'POST':
         phase_id = request.POST.get('phase')
-        # Contractor's manual entry for extra work/labour
-        try:
-            extra_costs = Decimal(request.POST.get('extra_costs') or '0')
-        except:
-            extra_costs = Decimal('0.00')
-            
+        start_date = request.POST.get('start_date')
+        end_date = request.POST.get('end_date')
+        extra_costs = Decimal(request.POST.get('extra_costs') or '0')
         description = request.POST.get('description', '')
+
         selected_phase = get_object_or_404(ProjectPhase, id=phase_id)
 
-        # Wrap in transaction to ensure data integrity
         with transaction.atomic():
-            # 1. CALCULATE MATERIALS (Float * Decimal Fix)
-            # We use the related_name='material_logs' from your model
-            mat_value = selected_phase.material_logs.aggregate(
-                total=Sum(
-                    ExpressionWrapper(
-                        F('quantity_used') * F('material__cost_per_unit'),
-                        output_field=DecimalField(max_digits=15, decimal_places=2)
-                    )
-                )
+            # 1. FILTER MATERIALS BY DATE RANGE
+            mat_value = selected_phase.material_logs.filter(
+                date__range=[start_date, end_date]
+            ).aggregate(
+                total=Sum(ExpressionWrapper(
+                    F('quantity_used') * F('material__cost_per_unit'),
+                    output_field=DecimalField(max_digits=15, decimal_places=2)
+                ))
             )['total'] or Decimal('0.00')
 
-            # 2. CALCULATE LABOUR ATTENDANCE
-            # Since 'daily_wage' is a @property, we calculate in Python
-            # Use related_name='attendance_logs' from your model
-            labour_logs = selected_phase.attendance_logs.all()
+            # 2. FILTER LABOUR BY DATE RANGE
+            labour_logs = selected_phase.attendance_logs.filter(
+                date__range=[start_date, end_date]
+            )
             labour_value = sum((log.daily_wage for log in labour_logs), Decimal('0.00'))
 
-            # 3. CALCULATE GRAND TOTAL
+            # 3. GRAND TOTAL
             grand_total = mat_value + labour_value + extra_costs
 
-            # 4. GET CONTRACTOR ASSIGNMENT
-            assignment = get_object_or_404(
-                ProjectContractor, 
+            assignment = ProjectContractor.objects.get(
                 contractor=request.user, 
                 project=selected_phase.project
             )
 
-            # 5. CREATE THE INVOICE
-            # We store the breakdown in the description so the Accountant can see it
+            # 4. CREATE DETAILED AUDIT TRAIL
             detailed_desc = (
-                f"--- AUTO-CALCULATED BREAKDOWN ---\n"
-                f"Materials: ${mat_value:,.2f}\n"
-                f"Labour Attendance: ${labour_value:,.2f}\n"
-                f"Contractor Service Fee: ${extra_costs:,.2f}\n"
-                f"----------------------------------\n"
+                f"PERIOD: {start_date} to {end_date}\n"
+                f"PHASE: {selected_phase.phase_name}\n"
+                f"--- AUTO-CALCULATED ---\n"
+                f"Material Value: ${mat_value:,.2f}\n"
+                f"Labour Wages:   ${labour_value:,.2f}\n"
+                f"Contractor Fee: ${extra_costs:,.2f}\n"
+                f"-----------------------\n"
                 f"Notes: {description}"
             )
 
@@ -95,7 +88,43 @@ def submit_invoice(request):
                 status='PENDING'
             )
 
-        messages.success(request, f"Invoice for {selected_phase.phase_name} (${grand_total:,.2f}) submitted successfully.")
+        messages.success(request, f"Invoice for {start_date} to {end_date} submitted successfully.")
         return redirect('contractors:contractors_home')
 
     return render(request, 'contractors/submit_invoice.html', {'phases': phases})
+
+from django.http import JsonResponse
+from decimal import Decimal
+
+@login_required
+def get_phase_costs(request):
+    phase_id = request.GET.get('phase_id')
+    start_date = request.GET.get('start')
+    end_date = request.GET.get('end')
+    
+    if not all([phase_id, start_date, end_date]):
+        return JsonResponse({'mat_cost': 0, 'lab_cost': 0})
+
+    selected_phase = get_object_or_404(ProjectPhase, id=phase_id)
+
+    # 1. Material Value within dates
+    mat_cost = selected_phase.material_logs.filter(
+        date__range=[start_date, end_date]
+    ).aggregate(
+        total=Sum(ExpressionWrapper(
+            F('quantity_used') * F('material__cost_per_unit'),
+            output_field=DecimalField(max_digits=15, decimal_places=2)
+        ))
+    )['total'] or Decimal('0.00')
+
+    # 2. Labour Wages within dates
+    labour_logs = selected_phase.attendance_logs.filter(
+        date__range=[start_date, end_date]
+    )
+    lab_cost = sum((log.daily_wage for log in labour_logs), Decimal('0.00'))
+
+    return JsonResponse({
+        'mat_cost': float(mat_cost),
+        'lab_cost': float(lab_cost),
+        'total': float(mat_cost + lab_cost)
+    })

@@ -37,4 +37,4 @@ class Invoice(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
 
     def __str__(self):
-        return f"Inv #{self.id} - {self.phase.name} ({self.project.name})"
+        return f"Inv #{self.id} - {self.phase.phase_name} ({self.project.name})"

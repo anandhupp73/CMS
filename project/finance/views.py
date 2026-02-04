@@ -21,7 +21,7 @@ def home(request):
         'pending_payments': pending_payments,
         'payment_history': payment_history,
     })
-    
+
 @login_required
 @user_passes_test(is_acc)
 def record_payment(request, invoice_id):
@@ -30,41 +30,28 @@ def record_payment(request, invoice_id):
 
     if request.method == 'POST':
         mode = request.POST.get('mode')
-        # Ensure the amount from the form is treated as a Decimal
-        form_amount = Decimal(request.POST.get('amount', 0)) 
+        # We take the actual amount being paid (usually invoice.amount)
+        form_amount = Decimal(request.POST.get('amount', invoice.amount)) 
         
-        # Use an atomic transaction so if the budget save fails, 
-        # the invoice doesn't mark as PAID by mistake.
         with transaction.atomic():
-            # 1. Calculate Material Costs for this specific phase
-            material_val = invoice.phase.material_logs.aggregate(
-                total=Sum(
-                    ExpressionWrapper(
-                        F('quantity_used') * F('material__cost_per_unit'),
-                        output_field=DecimalField(max_digits=12, decimal_places=2)
-                    )
-                )
-            )['total'] or Decimal('0.00')
-
-            # 2. Total amount to reduce from the remaining budget
-            total_deduction = form_amount + material_val
-
-            # 3. Create the payment record
+            # 1. Create the payment record for audit
             Payment.objects.create(
                 invoice=invoice,
                 paid_amount=form_amount,
                 mode=mode
             )
             
-            # 4. Update Project Budget (Deduction logic)
-            project.budget -= total_deduction
+            # 2. Update Project Budget 
+            # In a real system, the 'Total Impact' is the Invoice Amount.
+            # Materials were already added to this amount in the contractor view.
+            project.budget -= form_amount
             project.save()
 
-            # 5. Finalize Invoice
+            # 3. Finalize Invoice
             invoice.status = 'PAID'
             invoice.save()
             
-        messages.success(request, f"Success! ${form_amount} paid and ${material_val} material value settled.")
+        messages.success(request, f"Payment of ${form_amount} processed. Project budget updated.")
         return redirect('finance:accountant_dashboard')
 
     return render(request, 'finance/record_payment.html', {'invoice': invoice})
