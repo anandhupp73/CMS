@@ -4,7 +4,8 @@ from django.contrib.auth import logout, get_user_model
 from django.contrib import messages
 from .forms import AdminUserCreateForm
 from construction.models import *
-from django.db.models import Sum, F, ExpressionWrapper, DecimalField
+from django.db.models import Sum, F, ExpressionWrapper, DecimalField, OuterRef, Subquery, Value
+from django.db.models.functions import Coalesce
 from decimal import Decimal
 from contractors.models import *
 from materials.models import *
@@ -51,20 +52,54 @@ def admin_dashboard(request):
     sup_count = User.objects.filter(role__name='Supervisor').count()
     print(total_users)
     
-    active_projects = Project.objects.filter(is_active=True).order_by('-created_at')[:2]
+    # 1. Reuse the Subquery logic from your PM view for the Admin's active project list
+    cash_sq = Payment.objects.filter(
+        invoice__project=OuterRef('pk')
+    ).values('invoice__project').annotate(
+        total=Sum('paid_amount')
+    ).values('total')
+
+    material_sq = MaterialUsage.objects.filter(
+        project=OuterRef('pk')
+    ).values('project').annotate(
+        total=Sum(ExpressionWrapper(
+            F('quantity_used') * F('material__cost_per_unit'),
+            output_field=DecimalField(max_digits=15, decimal_places=2)
+        ))
+    ).values('total')
+
+    # 2. Annotate active_projects so each 'project' object carries its spending data
+    active_projects = Project.objects.filter(is_active=True).annotate(
+        spent_cash=Coalesce(Subquery(cash_sq), Value(0), output_field=DecimalField()),
+        spent_materials=Coalesce(Subquery(material_sq), Value(0), output_field=DecimalField()),
+    ).order_by('-created_at')[:2]
 
     total_projects = Project.objects.count()
     active_count = Project.objects.filter(is_active=True).count()
+    
 
     # Budgets
-    total_budget = Project.objects.aggregate(
-        total=Sum('budget')
-    )['total'] or 0
+    # total_budget = Project.objects.aggregate(
+    #     total=Sum('budget')
+    # )['total'] or 0
+    
+    # 1. Total Cash Outflow (Paid Invoices)
+    total_paid = Payment.objects.aggregate(total=Sum('paid_amount'))['total'] or Decimal('0.00')
+
+    # 2. Total Material Value (Consumed Resources)
+    total_materials = MaterialUsage.objects.aggregate(
+        total=Sum(ExpressionWrapper(F('quantity_used') * F('material__cost_per_unit'), output_field=DecimalField()))
+    )['total'] or Decimal('0.00')
+
+    # 3. Overall Spending
+    overall_spending = total_paid + total_materials
+
+    overall_initial_budget = overall_spending + (Project.objects.aggregate(res=Sum('budget'))['res'] or Decimal('0.00'))
     
     delayed_projects = 3
-    overall_spending = 8_900_000  # $8.9M dummy
-    spending_percentage = 71      # dummy %
-
+    
+    spending_percentage = round((float(overall_spending) / float(overall_initial_budget)) * 100, 2) if overall_initial_budget > 0 else 0
+    
     context = {
         'total_users': total_users,
         'pm_count': pm_count,
@@ -74,7 +109,7 @@ def admin_dashboard(request):
         'active_count': active_count,
         'delayed_projects': delayed_projects,
 
-        'total_budget': total_budget,
+        'total_budget': overall_initial_budget,
         'overall_spending': overall_spending,
         'spending_percentage': spending_percentage,
 

@@ -314,7 +314,11 @@
                                             class="flex justify-between text-[10px] font-bold text-slate-400 uppercase"
                                         >
                                             <span>Budget</span>
-                                            <span>${{ project.budget }}</span>
+                                            <span>
+                                                {% with total_spent=project.spent_cash|add:project.spent_materials %}
+                                                    ₹{{ project.budget|add:total_spent|floatformat:0 }}
+                                                {% endwith %}
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
