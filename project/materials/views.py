@@ -3,6 +3,8 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from .models import Material, MaterialUsage
 from construction.models import *
+from django.db.models import Sum
+from django.db.models.functions import Coalesce
 
 
 def can_manage_materials(user):
@@ -15,7 +17,9 @@ def can_add_materials(user):
 @login_required
 @user_passes_test(can_manage_materials)
 def material_bank(request):
-    materials = Material.objects.all().order_by('name')
+    materials = Material.objects.annotate(
+        total_used_calc=Coalesce(Sum('materialusage__quantity_used'), 0.0)
+    ).order_by('name')
     
     if request.method == 'POST':
         
@@ -73,7 +77,7 @@ def project_material_usage(request, project_id):
 
     return render(request, 'materials/project_usage.html', {
         'project': project,
-        'phases': phases, # Pass phases to the template
+        'phases': phases, 
         'materials': materials,
         'usage_history': usage_history
     })
@@ -88,5 +92,5 @@ def update_material_stock(request, material_id):
         material.stock += added_qty 
         material.save()
         messages.success(request, f"Added {added_qty} to stock.")
-        return redirect('materials:material_bank')
+        return redirect('materials:material_home')
     return render(request, 'materials/update_stock.html', {'material': material})
